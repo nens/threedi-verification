@@ -13,10 +13,9 @@ from netCDF4 import Dataset
 import numpy as np
 from jinja2 import Environment, PackageLoader
 
-from python_subgrid.wrapper import SubgridWrapper
-from python_subgrid.utils import system
+from threedi_verification.utils import system
 
-jinja_env = Environment(loader=PackageLoader('python_subgrid', 'templates'))
+jinja_env = Environment(loader=PackageLoader('threedi_verification', 'templates'))
 logger = logging.getLogger(__name__)
 
 

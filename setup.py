@@ -39,6 +39,6 @@ setup(name='threedi-verification',
       extras_require={'test': tests_require},
       entry_points={
           'console_scripts': [
-              'verify = python_subgrid.verification:main',
+              'verify = threedi_verification.verification:main',
           ]},
       )
