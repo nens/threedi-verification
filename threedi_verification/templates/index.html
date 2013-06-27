@@ -3,25 +3,75 @@
 {% block main %}
   <h1>{{ title }}</h1>
   <table class="table table-bordered">
-    {% for mdu in view.mdus %}
+    <thead>
       <tr>
-        <td>
-          {% if mdu.loadable %}
-            <span class="label label-success"><i class="icon-ok icon-white"></i></span>
-          {% else %}
-            <span class="label label-important"><i class="icon-remove icon-white"></i></span>
-          {% endif %}
-        </td>
-        <td>
-          {{ mdu.title }}
-        </td>
-        <td>
-          {% if not mdu.loadable %}
-            <a href="{{ mdu.log_filename }}"
-               title="Logfile"><i class="icon-list-alt"></i></a>
-          {% endif %}
-        </td>
+        <th>Success?</th>
+        <th colspan="5">MDU file and directory</th>
+        <th>Logfile</th>
       </tr>
-    {% endfor %}
+      <tr>
+        <th>&nbsp;</th>
+        <th>Success?</th>
+        <th>Note</th>
+        <th>Parameter</th>
+        <th>Expected</th>
+        <th>Found</th>
+        <th>Logfile</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for mdu in view.mdus %}
+        <tr>
+          <td>
+            {% if mdu.loadable %}
+              <span class="label label-success"><i class="icon-ok icon-white"></i></span>
+            {% else %}
+              <span class="label label-important"><i class="icon-remove icon-white"></i></span>
+            {% endif %}
+          </td>
+          <td colspan="5">
+            {{ mdu.title }}
+          </td>
+          <td>
+            {% if mdu.logs %}
+              <a href="{{ mdu.log_filename }}"
+                 title="Logfile"><i class="icon-list-alt"></i></a>
+            {% endif %}
+          </td>
+        </tr>
+
+        {% for instruction in mdu.instructions %}
+          <tr>
+            <td>&nbsp;</td>
+            <td>
+              {% if instruction.equal %}
+                <span class="label label-success"><i class="icon-ok icon-white"></i></span>
+              {% else %}
+                <span class="label label-important"><i class="icon-remove icon-white"></i></span>
+              {% endif %}
+            </td>
+            <td>
+              {{ instruction.title }}
+            </td>
+            <td>
+              {{ instruction.parameter }}
+            </td>
+            <td>
+              {{ instruction.desired }}
+            </td>
+            <td>
+              {{ instruction.found }}
+            </td>
+            <td>
+              {% if instruction.logs %}
+                <a href="{{ instruction.log_filename }}"
+                   title="Logfile"><i class="icon-list-alt"></i></a>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+
+      {% endfor %}
+    </tbody>
   </table>
 {% endblock main %}

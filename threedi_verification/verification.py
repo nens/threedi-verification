@@ -28,9 +28,19 @@ class InstructionReport(object):
     def __init__(self):
         self.logs = []
         self.id = None
+        self.parameter = None
+        self.desired = None
+        self.found = None
+        self.equal = None
+        self.title = None
 
     def __cmp__(self, other):
         return cmp(self.id, other.id)
+
+    @property
+    def log_filename(self):
+        id = self.id.replace('/', '-')
+        return 'instruction_log_%s.html' % id
 
 
 class MduReport(object):
@@ -53,6 +63,7 @@ class MduReport(object):
     def title(self):
         return self.id.split('/testbank/')[1]
 
+    @property
     def instructions(self):
         return sorted(self.instruction_reports.values())
 
@@ -90,29 +101,44 @@ class Report(object):
         self._propagate_ids()
         self.write_template('index.html',
                             title='Overview')
-        unloadable_mdus = [mdu for mdu in self.mdu_reports.values() 
-                           if not mdu.loadable]
-        for mdu in unloadable_mdus:
-            title = "Log of %s" % mdu.title
-            self.write_template('mdu_log.html',
-                                title=mdu.title,
-                                outfile=mdu.log_filename,
-                                context=mdu)
+        for mdu in self.mdu_reports.values():
+            if mdu.logs:
+                title = "Log of %s" % mdu.title
+                self.write_template('mdu_log.html',
+                                    title=mdu.title,
+                                    outfile=mdu.log_filename,
+                                    context=mdu)
+            for instruction in mdu.instruction_reports.values():
+                if instruction.logs:
+                    title = "Log of %s" % instruction.title
+                    self.write_template('mdu_log.html',
+                                        title=instruction.title,
+                                        outfile=instruction.log_filename,
+                                        context=instruction)
 
-
+                    
 report = Report()
 
 
-def check_his(instructions):
+def check_his(csv_filename, mdu_report=None):
+    instructions = list(csv.DictReader(open(csv_filename), delimiter=';'))
     netcdf_filename = 'subgrid_his.nc'
     with Dataset(netcdf_filename) as dataset:
         for instruction in instructions:
+            instruction_id = csv_filename[:-4] + '-' + instruction['testnr']
+            instruction_report = mdu_report.instruction_reports[instruction_id]
             # Brute force for now.
             parameter_name = instruction['param']
+            instruction_report.parameter = parameter_name
+            instruction_report.title = instruction['note']
+            desired = float(instruction['ref'])
+            instruction_report.desired = desired
             if not parameter_name in dataset.variables:
-                logger.error("Parameter '%s' not found in %s",
-                             parameter_name,
-                             dataset.variables.keys())
+                msg = "Parameter '%s' not found in %s" % (
+                    parameter_name,
+                    dataset.variables.keys())
+                instruction_report.logs.append(msg)
+                logger.error(msg)
                 continue
             parameter_values = dataset.variables[parameter_name][:]
             desired_time = instruction['time']
@@ -127,13 +153,15 @@ def check_his(instructions):
                 try:
                     desired_index = time_values.index(desired_time)
                 except ValueError:
-                    logger.error("Time %s not found in %s",
-                                 desired_time,
-                                 time_values)
+                    msg = "Time %s not found in %s" % (desired_time, 
+                                                       time_values)
+                    instruction_report.logs.append(msg)
+                    logger.error(msg)
                     continue
                 found = parameter_values[desired_index][0]
 
-            desired = instruction['ref']
+            instruction_report.found = found
+            instruction_report.equal = (abs(desired - found) < 0.00001)
             logger.info("Found value %s for parameter %s; desired=%s", 
                         found,
                         parameter_name,
@@ -154,16 +182,14 @@ def run_simulation(mdu_filepath):
         mdu_report.logs.append(output)
     else:
         logger.info("Successfully loaded: %s", mdu_filepath)
-        mdu_report.logs.append(output)
+        # mdu_report.logs.append(output)
         csv_filenames = [f for f in os.listdir('.') if f.endswith('.csv')]
         for csv_filename in csv_filenames:
             logger.info("Reading instructions from %s", csv_filename)
-            with open(csv_filename) as csv_file:
-                instructions = list(csv.DictReader(csv_file, delimiter=';'))
-                if 'his' in csv_filename:
-                    check_his(instructions)
-                else:
-                    logger.warn("TODO: Handle this one")
+            if 'his' in csv_filename:
+                check_his(csv_filename, mdu_report=mdu_report)
+            else:
+                logger.warn("TODO: Handle this one")
     os.chdir(original_dir)
 
 
