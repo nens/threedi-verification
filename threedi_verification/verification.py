@@ -131,7 +131,14 @@ def check_his(csv_filename, mdu_report=None):
             parameter_name = instruction['param']
             instruction_report.parameter = parameter_name
             instruction_report.title = instruction['note']
-            desired = float(instruction['ref'])
+            try:
+                desired = float(instruction['ref'])
+            except ValueError:
+                desired = instruction['ref']
+                msg = "Invalid non-float value: %s" % desired
+                instruction_report.logs.append(msg)
+                logger.error(msg)
+                continue
             instruction_report.desired = desired
             if not parameter_name in dataset.variables:
                 msg = "Parameter '%s' not found in %s" % (
