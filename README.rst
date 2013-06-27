@@ -6,35 +6,22 @@ Introduction
 Usage, etc.
 
 
-Post-nensskel setup TODO
-------------------------
+Test cases
+----------
 
-Here are some instructions on what to do after you've created the project with
-nensskel.
+N&S is preparing model test cases ("model unit tests"), testing
+individual bits and pieces of functionality. It works on linux only at
+the moment, but that's just because it expects an
+``/opt/3di/bin/subgridf90`` binary (so that's fixable).
 
-- Fill in a short description on https://github.com/lizardsystem/threedi-verification or
-  https://github.com/nens/threedi-verification if you haven't done so already.
+It also requires a mercurial (``hg``) to be installed.
 
-- Use the same description in the ``setup.py``'s "description" field.
+Run ``./update_testbank.sh`` to get the current set of test cases in
+the ``testbank/`` subdirectory. (You might need to enable the
+largefile mercurial extension in your ``~/.hgrc``). After that::
 
-- Fill in your username and email address in the ``setup.py``, see the
-  ``TODO`` fields.
+    $ bin/verify testbank
 
-- Check https://github.com/nens/threedi-verification/settings/collaboration if the team
-  "Nelen & Schuurmans" has access.
-
-- Add a new jenkins job at
-  http://buildbot.lizardsystem.nl/jenkins/view/djangoapps/newJob or
-  http://buildbot.lizardsystem.nl/jenkins/view/libraries/newJob . Job name
-  should be "threedi-verification", make the project a copy of the existing "lizard-wms"
-  project (for django apps) or "nensskel" (for libraries). On the next page,
-  change the "github project" to ``https://github.com/nens/threedi-verification/`` and
-  "repository url" fields to ``git@github.com:nens/threedi-verification.git`` (you might
-  need to replace "nens" with "lizardsystem"). The rest of the settings should
-  be OK.
-
-- The project is prepared to be translated with Lizard's
-  `Transifex <http://translations.lizard.net/>`_ server. For details about
-  pushing translation files to and fetching translation files from the
-  Transifex server, see the ``nens/translations`` `documentation
-  <https://github.com/nens/translations/blob/master/README.rst>`_.
+This generates some html files into the current directory. The html
+output is also generated on jenkins:
+http://jenkins.3di.lizard.net/testresults/ .

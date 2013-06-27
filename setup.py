@@ -10,22 +10,25 @@ long_description = '\n\n'.join([
 
 install_requires = [
     'setuptools',
+    'netCDF4',
+    'Jinja2',
     ],
 
 tests_require = [
     'nose',
+    'mock',
     'coverage',
     ]
 
 setup(name='threedi-verification',
       version=version,
-      description="TODO",
+      description="3Di test cases verification tool",
       long_description=long_description,
       # Get strings from http://www.python.org/pypi?%3Aaction=list_classifiers
       classifiers=[],
       keywords=[],
-      author='TODO',
-      author_email='TODO@nelen-schuurmans.nl',
+      author='Reinout van Rees',
+      author_email='reinout.vanrees@nelen-schuurmans.nl',
       url='',
       license='GPL',
       packages=['threedi_verification'],
@@ -36,5 +39,6 @@ setup(name='threedi-verification',
       extras_require={'test': tests_require},
       entry_points={
           'console_scripts': [
+              'verify = python_subgrid.verification:main',
           ]},
       )
