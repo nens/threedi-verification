@@ -4,6 +4,7 @@ models and to create reports about them.
 
 """
 from __future__ import print_function
+from collections import defaultdict
 import argparse
 import csv
 import logging
@@ -18,36 +19,91 @@ from threedi_verification.utils import system
 jinja_env = Environment(loader=PackageLoader('threedi_verification', 'templates'))
 logger = logging.getLogger(__name__)
 
+OUTDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 
+                                      '..', 'var', 'html'))
+
+
+class InstructionReport(object):
+
+    def __init__(self):
+        self.logs = []
+        self.id = None
+
+    def __cmp__(self, other):
+        return cmp(self.id, other.id)
+
+
+class MduReport(object):
+
+    def __init__(self):
+        self.logs = []
+        self.id = None
+        self.instruction_reports = defaultdict(InstructionReport)
+        self.loadable = True
+
+    def __cmp__(self, other):
+        return cmp(self.id, other.id)
+
+    @property
+    def log_filename(self):
+        id = self.id.replace('/', '-')
+        return 'mdu_log_%s.html' % id
+
+    @property
+    def title(self):
+        return self.id.split('/testbank/')[1]
+
+    def instructions(self):
+        return sorted(self.instruction_reports.values())
+
 
 class Report(object):
 
     def __init__(self):
-        self.not_loadable = []
-        self.loadable = []
+        self.mdu_reports = defaultdict(MduReport)
 
-    def record_not_loadable(self, mdu_file, output):
-        self.not_loadable.append([mdu_file, output])
-
-    def record_loadable(self, mdu_file, output):
-        self.loadable.append([mdu_file, output])
-
-    def write_template(self, template_name, outfile=None, title=None):
+    def write_template(self, template_name, outfile=None, title=None, 
+                       context=None):
         if outfile is None:
             outfile = template_name
+        outfile = os.path.join(OUTDIR, outfile)
         template = jinja_env.get_template(template_name)
-        open(outfile, 'w').write(template.render(view=self, title=title))
+        open(outfile, 'w').write(template.render(view=self, 
+                                                 title=title, 
+                                                 context=context))
         logger.debug("Wrote %s", outfile)
 
+    def _propagate_ids(self):
+        for mdu_id in self.mdu_reports:
+            mdu_report = self.mdu_reports[mdu_id]
+            mdu_report.id = mdu_id
+            for instruction_id in mdu_report.instruction_reports:
+                instruction_report = mdu_report.instruction_reports[
+                    instruction_id]
+                instruction_report.id = instruction_id
+
+    @property
+    def mdus(self):
+        return sorted(self.mdu_reports.values())
+
     def export_reports(self):
+        self._propagate_ids()
         self.write_template('index.html',
                             title='Overview')
-        self.write_template('not_loadable.html',
-                            title='Not loadable MDUs')
-        self.write_template('loadable.html',
-                            title='Loadable MDUs')
+        unloadable_mdus = [mdu for mdu in self.mdu_reports.values() 
+                           if not mdu.loadable]
+        for mdu in unloadable_mdus:
+            title = "Log of %s" % mdu.title
+            self.write_template('mdu_log.html',
+                                title=mdu.title,
+                                outfile=mdu.log_filename,
+                                context=mdu)
 
 
-def check_his(instructions, report=None):
+report = Report()
+
+
+def check_his(instructions):
     netcdf_filename = 'subgrid_his.nc'
     with Dataset(netcdf_filename) as dataset:
         for instruction in instructions:
@@ -71,9 +127,9 @@ def check_his(instructions, report=None):
                 try:
                     desired_index = time_values.index(desired_time)
                 except ValueError:
-                    logger.exception("Time %s not found in %s",
-                                     desired_time,
-                                     time_values)
+                    logger.error("Time %s not found in %s",
+                                 desired_time,
+                                 time_values)
                     continue
                 found = parameter_values[desired_index][0]
 
@@ -84,7 +140,8 @@ def check_his(instructions, report=None):
                         desired)
                         
 
-def run_simulation(mdu_filepath, report):
+def run_simulation(mdu_filepath):
+    mdu_report = report.mdu_reports[mdu_filepath]
     original_dir = os.getcwd()
     os.chdir(os.path.dirname(mdu_filepath))
     logger.debug("Loading %s...", mdu_filepath)
@@ -93,17 +150,18 @@ def run_simulation(mdu_filepath, report):
     exit_code, output = system(cmd)
     if exit_code:
         logger.error("Loading failed: %s", mdu_filepath)
-        report.record_not_loadable(mdu_filepath, output)
+        mdu_report.loadable = False
+        mdu_report.logs.append(output)
     else:
         logger.info("Successfully loaded: %s", mdu_filepath)
-        report.record_loadable(mdu_filepath, output)
+        mdu_report.logs.append(output)
         csv_filenames = [f for f in os.listdir('.') if f.endswith('.csv')]
         for csv_filename in csv_filenames:
             logger.info("Reading instructions from %s", csv_filename)
             with open(csv_filename) as csv_file:
                 instructions = list(csv.DictReader(csv_file, delimiter=';'))
                 if 'his' in csv_filename:
-                    check_his(instructions, report=report)
+                    check_his(instructions)
                 else:
                     logger.warn("TODO: Handle this one")
     os.chdir(original_dir)
@@ -127,8 +185,7 @@ def main():
                         help='directory with the tests')
     args = parser.parse_args()
     logging.basicConfig(level=logging.DEBUG)
-    report = Report()
     for mdu_filepath in mdu_filepaths(args.directory):
-        run_simulation(mdu_filepath, report)
+        run_simulation(mdu_filepath)
     report.export_reports()
     

@@ -1,20 +1,27 @@
-<html>
-  <head>
-    <title>{{ title }}</title>
-  </head>
-  <body>
-    <h1>{{ title }}</h1>
-    <ul>
-      <li>
-        <a href="loadable.html">
-          {{ view.loadable | length }} loadable MDU files.
-        </a>
-      </li>
-      <li>
-        <a href="not_loadable.html">
-          {{ view.not_loadable | length }} not loadable MDU files.
-        </a>
-      </li>
-    </ul>
-  </body>
-</html>
+{% extends "base.html" %}
+
+{% block main %}
+  <h1>{{ title }}</h1>
+  <table class="table table-bordered">
+    {% for mdu in view.mdus %}
+      <tr>
+        <td>
+          {% if mdu.loadable %}
+            <span class="label label-success"><i class="icon-ok icon-white"></i></span>
+          {% else %}
+            <span class="label label-important"><i class="icon-remove icon-white"></i></span>
+          {% endif %}
+        </td>
+        <td>
+          {{ mdu.title }}
+        </td>
+        <td>
+          {% if not mdu.loadable %}
+            <a href="{{ mdu.log_filename }}"
+               title="Logfile"><i class="icon-list-alt"></i></a>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+{% endblock main %}
