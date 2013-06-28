@@ -39,10 +39,11 @@ class InstructionReport(object):
 
     @property
     def shortlog(self):
-        if self.log is None:
+        try:
+            if len(self.log < 400):
+                return self.log
+        except TypeError:
             return ''
-        if len(self.log < 400):
-            return self.log
         return self.log[:200] + ' ... ' + self.log[-200:]
 
 
