@@ -37,6 +37,12 @@ class InstructionReport(object):
     def __cmp__(self, other):
         return cmp(self.id, other.id)
 
+    @property
+    def shortlog(self):
+        if len(self.log < 400):
+            return self.log
+        return self.log[:200] + ' ... ' + self.log[-200:]
+
 
 class MduReport(object):
 
