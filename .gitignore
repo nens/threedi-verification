@@ -38,3 +38,4 @@ etc/*.nginx.conf
 etc/*.logrotate
 
 testbank
+.DS_Store

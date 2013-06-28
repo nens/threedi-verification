@@ -26,7 +26,7 @@ OUTDIR = os.path.abspath(os.path.join(os.path.dirname(__file__),
 class InstructionReport(object):
 
     def __init__(self):
-        self.logs = []
+        self.log = None
         self.id = None
         self.parameter = None
         self.desired = None
@@ -37,16 +37,16 @@ class InstructionReport(object):
     def __cmp__(self, other):
         return cmp(self.id, other.id)
 
-    @property
-    def log_filename(self):
-        id = self.id.replace('/', '-')
-        return 'instruction_log_%s.html' % id
+    # @property
+    # def log_filename(self):
+    #     id = self.id.replace('/', '-')
+    #     return 'instruction_log_%s.html' % id
 
 
 class MduReport(object):
 
     def __init__(self):
-        self.logs = []
+        self.log = None
         self.id = None
         self.instruction_reports = defaultdict(InstructionReport)
         self.loadable = True
@@ -58,6 +58,11 @@ class MduReport(object):
     def log_filename(self):
         id = self.id.replace('/', '-')
         return 'mdu_log_%s.html' % id
+
+    @property
+    def log_summary(self):
+        last_lines = self.log.split('\n')[-3:]
+        return '\n'.join(last_lines)
 
     @property
     def title(self):
@@ -102,19 +107,19 @@ class Report(object):
         self.write_template('index.html',
                             title='Overview')
         for mdu in self.mdu_reports.values():
-            if mdu.logs:
+            if mdu.log:
                 title = "Log of %s" % mdu.title
                 self.write_template('mdu_log.html',
                                     title=mdu.title,
                                     outfile=mdu.log_filename,
                                     context=mdu)
-            for instruction in mdu.instruction_reports.values():
-                if instruction.logs:
-                    title = "Log of %s" % instruction.title
-                    self.write_template('mdu_log.html',
-                                        title=instruction.title,
-                                        outfile=instruction.log_filename,
-                                        context=instruction)
+            # for instruction in mdu.instruction_reports.values():
+            #     if instruction.log:
+            #         title = "Log of %s" % instruction.title
+            #         self.write_template('mdu_log.html',
+            #                             title=instruction.title,
+            #                             outfile=instruction.log_filename,
+            #                             context=instruction)
 
                     
 report = Report()
@@ -136,7 +141,7 @@ def check_his(csv_filename, mdu_report=None):
             except ValueError:
                 desired = instruction['ref']
                 msg = "Invalid non-float value: %s" % desired
-                instruction_report.logs.append(msg)
+                instruction_report.log = msg
                 logger.error(msg)
                 continue
             instruction_report.desired = desired
@@ -144,7 +149,7 @@ def check_his(csv_filename, mdu_report=None):
                 msg = "Parameter '%s' not found in %s" % (
                     parameter_name,
                     dataset.variables.keys())
-                instruction_report.logs.append(msg)
+                instruction_report.log = msg
                 logger.error(msg)
                 continue
             parameter_values = dataset.variables[parameter_name][:]
@@ -162,7 +167,7 @@ def check_his(csv_filename, mdu_report=None):
                 except ValueError:
                     msg = "Time %s not found in %s" % (desired_time, 
                                                        time_values)
-                    instruction_report.logs.append(msg)
+                    instruction_report.log = msg
                     logger.error(msg)
                     continue
                 found = parameter_values[desired_index][0]
@@ -186,10 +191,10 @@ def run_simulation(mdu_filepath):
     if exit_code:
         logger.error("Loading failed: %s", mdu_filepath)
         mdu_report.loadable = False
-        mdu_report.logs.append(output)
+        mdu_report.log = output
     else:
         logger.info("Successfully loaded: %s", mdu_filepath)
-        # mdu_report.logs.append(output)
+        # mdu_report.log = output 
         csv_filenames = [f for f in os.listdir('.') if f.endswith('.csv')]
         for csv_filename in csv_filenames:
             logger.info("Reading instructions from %s", csv_filename)

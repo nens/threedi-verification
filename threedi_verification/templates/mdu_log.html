@@ -2,7 +2,5 @@
 
 {% block main %}
   <h1>{{ title }}</h1>
-  {% for log in context.logs %}
-    <pre>{{ log }}</pre>
-  {% endfor %}
+  <pre>{{ context.log }}</pre>
 {% endblock main %}

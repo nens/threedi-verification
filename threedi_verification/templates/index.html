@@ -1,77 +1,78 @@
 {% extends "base.html" %}
 
 {% block main %}
-  <h1>{{ title }}</h1>
-  <table class="table table-bordered">
-    <thead>
-      <tr>
-        <th>Success?</th>
-        <th colspan="5">MDU file and directory</th>
-        <th>Logfile</th>
-      </tr>
-      <tr>
-        <th>&nbsp;</th>
-        <th>Success?</th>
-        <th>Note</th>
-        <th>Parameter</th>
-        <th>Expected</th>
-        <th>Found</th>
-        <th>Logfile</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for mdu in view.mdus %}
-        <tr>
-          <td>
-            {% if mdu.loadable %}
-              <span class="label label-success"><i class="icon-ok icon-white"></i></span>
-            {% else %}
-              <span class="label label-important"><i class="icon-remove icon-white"></i></span>
-            {% endif %}
-          </td>
-          <td colspan="5">
-            {{ mdu.title }}
-          </td>
-          <td>
-            {% if mdu.logs %}
-              <a href="{{ mdu.log_filename }}"
-                 title="Logfile"><i class="icon-list-alt"></i></a>
-            {% endif %}
-          </td>
-        </tr>
+  <div class="page-header">
+    <h1>{{ title }}</h1>
+  </div>
 
-        {% for instruction in mdu.instructions %}
+  {% for mdu in view.mdus %}
+    <h2>
+      {% if mdu.loadable %}
+        <i class="icon-ok good"></i>
+      {% else %}
+        <i class="icon-remove wrong"></i>
+      {% endif %}
+      {{ mdu.title }}
+    </h2>
+    {% if mdu.log %}
+
+      <div class="alert alert-error">
+        <pre>{{ mdu.log_summary }}</pre>
+        <a href="{{ mdu.log_filename }}"
+           title="Logfile">
+          <i class="icon-file-text-alt"></i> Full logfile
+        </a>
+      </div>
+
+    {% else %}
+
+      <table class="table table-bordered">
+        <thead>
           <tr>
-            <td>&nbsp;</td>
-            <td>
-              {% if instruction.equal %}
-                <span class="label label-success"><i class="icon-ok icon-white"></i></span>
-              {% else %}
-                <span class="label label-important"><i class="icon-remove icon-white"></i></span>
-              {% endif %}
-            </td>
-            <td>
-              {{ instruction.title }}
-            </td>
-            <td>
-              {{ instruction.parameter }}
-            </td>
-            <td>
-              {{ instruction.desired }}
-            </td>
-            <td>
-              {{ instruction.found }}
-            </td>
-            <td>
-              {% if instruction.logs %}
-                <a href="{{ instruction.log_filename }}"
-                   title="Logfile"><i class="icon-list-alt"></i></a>
-              {% endif %}
-            </td>
+            <th>Parameter</th>
+            <th>Expected</th>
+            <th>Found</th>
+            <th>Note</th>
           </tr>
-        {% endfor %}
+        </thead>
+        <tbody>
+          {% for instruction in mdu.instructions %}
+            <tr>
+              <td>
+                {{ instruction.parameter }}
+              </td>
+              <td>
+                {{ instruction.desired }}
+              </td>
+              <td>
+                {% if instruction.equal %}
+                  <span class="good">
+                    <i class="icon-ok"></i>
+                    {{ instruction.found }}
+                  </span>
+                {% elif instruction.log %}
+                  <span class="wrong has-tooltip"
+                        title="{{ instruction.log|escape }}">
+                    <i class="icon-remove"></i>
+                    An error occurred
+                  </span>
+                {% else %}
+                  <span class="wrong">
+                    <i class="icon-remove"></i>
+                    {{ instruction.found }}
+                  </span>
+                {% endif %}
+              </td>
+              <td>
+                {{ instruction.title }}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
 
-      {% endfor %}
-    </tbody>
-  </table>
+    {% endif %}
+
+  {% endfor %}
+
 {% endblock main %}
