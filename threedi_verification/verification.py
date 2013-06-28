@@ -37,16 +37,12 @@ class InstructionReport(object):
     def __cmp__(self, other):
         return cmp(self.id, other.id)
 
-    # @property
-    # def log_filename(self):
-    #     id = self.id.replace('/', '-')
-    #     return 'instruction_log_%s.html' % id
-
 
 class MduReport(object):
 
     def __init__(self):
         self.log = None
+        self.successfully_loaded_log = None
         self.id = None
         self.instruction_reports = defaultdict(InstructionReport)
         self.loadable = True
@@ -113,13 +109,6 @@ class Report(object):
                                     title=mdu.title,
                                     outfile=mdu.log_filename,
                                     context=mdu)
-            # for instruction in mdu.instruction_reports.values():
-            #     if instruction.log:
-            #         title = "Log of %s" % instruction.title
-            #         self.write_template('mdu_log.html',
-            #                             title=instruction.title,
-            #                             outfile=instruction.log_filename,
-            #                             context=instruction)
 
                     
 report = Report()
@@ -178,6 +167,61 @@ def check_his(csv_filename, mdu_report=None):
                         found,
                         parameter_name,
                         desired)
+
+
+def check_map(csv_filename, mdu_report=None):
+    instructions = list(csv.DictReader(open(csv_filename), delimiter=';'))
+    netcdf_filename = 'subgrid_map.nc'
+    with Dataset(netcdf_filename) as dataset:
+        for instruction in instructions:
+            instruction_id = csv_filename[:-4] + '-' + instruction['testnr']
+            instruction_report = mdu_report.instruction_reports[instruction_id]
+            # Brute force for now.
+            parameter_name = instruction['param']
+            instruction_report.parameter = parameter_name
+            instruction_report.title = instruction['note']
+            try:
+                desired = float(instruction['ref'])
+            except ValueError:
+                desired = instruction['ref']
+                msg = "Invalid non-float value: %s" % desired
+                instruction_report.log = msg
+                logger.error(msg)
+                continue
+            instruction_report.desired = desired
+            if not parameter_name in dataset.variables:
+                msg = "Parameter '%s' not found in %s" % (
+                    parameter_name,
+                    dataset.variables.keys())
+                instruction_report.log = msg
+                logger.error(msg)
+                continue
+            parameter_values = dataset.variables[parameter_name][:]
+            desired_time = instruction['time']
+            if desired_time == 'SUM':
+                logger.debug("Summing all values")
+                found = parameter_values.sum()
+            else:
+                desired_time = float(desired_time)
+                logger.debug("Looking up value for time %s", desired_time)
+                # TODO: less brute force, if possible.
+                time_values = list(dataset.variables['time'][:])
+                try:
+                    desired_index = time_values.index(desired_time)
+                except ValueError:
+                    msg = "Time %s not found in %s" % (desired_time, 
+                                                       time_values)
+                    instruction_report.log = msg
+                    logger.error(msg)
+                    continue
+                found = parameter_values[desired_index][0]
+
+            instruction_report.found = found
+            instruction_report.equal = (abs(desired - found) < 0.00001)
+            logger.info("Found value %s for parameter %s; desired=%s", 
+                        found,
+                        parameter_name,
+                        desired)
                         
 
 def run_simulation(mdu_filepath):
@@ -186,22 +230,25 @@ def run_simulation(mdu_filepath):
     os.chdir(os.path.dirname(mdu_filepath))
     logger.debug("Loading %s...", mdu_filepath)
     cmd = '/opt/3di/bin/subgridf90 ' + os.path.basename(mdu_filepath)
+    logger.debug("Running %s", cmd)
     # ^^^ TODO: hardcoded.
     exit_code, output = system(cmd)
-    if exit_code:
+    last_output = ''.join(output.split('\n')[-2:]).lower()
+    if exit_code or ('error' in last_output 
+                     and 'quitting' in last_output):
         logger.error("Loading failed: %s", mdu_filepath)
         mdu_report.loadable = False
         mdu_report.log = output
     else:
         logger.info("Successfully loaded: %s", mdu_filepath)
-        # mdu_report.log = output 
+        mdu_report.successfully_loaded_log = output 
         csv_filenames = [f for f in os.listdir('.') if f.endswith('.csv')]
         for csv_filename in csv_filenames:
             logger.info("Reading instructions from %s", csv_filename)
             if 'his' in csv_filename:
                 check_his(csv_filename, mdu_report=mdu_report)
             else:
-                logger.warn("TODO: Handle this one")
+                check_map(csv_filename, mdu_report=mdu_report)
     os.chdir(original_dir)
 
 
