@@ -1,9 +1,21 @@
 threedi-verification
 ==========================================
 
-Introduction
+This program tests a directory structure of mdu/csv files that all
+together check the subgrid fortran library. What it does:
 
-Usage, etc.
+- Traverse a directory structure (directory passed on the commandline
+  as the single argument).
+
+- Find ``*.mdu`` files and call them with the subgrid executable.
+
+- Find ``*.csv`` files belonging to the ``.mdu``.
+
+- Read instructions from the ``.csv`` which tell us the x/y
+  coordinate, parameter and expected value (mostly, there are
+  exceptions, like summing all values).
+
+- Record the results and generate html pages with the results.
 
 
 Test cases
