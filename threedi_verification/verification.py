@@ -126,8 +126,10 @@ def check_his(csv_filename, mdu_report=None):
     instructions = list(csv.DictReader(open(csv_filename), delimiter=';'))
     netcdf_filename = 'subgrid_his.nc'
     with Dataset(netcdf_filename) as dataset:
-        for instruction in instructions:
-            instruction_id = csv_filename[:-4] + '-' + instruction['testnr']
+        for test_number, instruction in enumerate(instructions):
+            instruction_id = csv_filename[:-4] + '-' + str(test_number)
+            # Note: previously we used instruction['testnr'], but we
+            # can enumerate them as easily ourselves.
             instruction_report = mdu_report.instruction_reports[instruction_id]
             # Brute force for now.
             parameter_name = instruction['param']
@@ -181,8 +183,10 @@ def check_map(csv_filename, mdu_report=None):
     instructions = list(csv.DictReader(open(csv_filename), delimiter=';'))
     netcdf_filename = 'subgrid_map.nc'
     with Dataset(netcdf_filename) as dataset:
-        for instruction in instructions:
-            instruction_id = csv_filename[:-4] + '-' + instruction['testnr']
+        for test_number, instruction in enumerate(instructions):
+            instruction_id = csv_filename[:-4] + '-' + str(test_number)
+            # Note: previously we used instruction['testnr'], but we
+            # can enumerate them as easily ourselves.
             instruction_report = mdu_report.instruction_reports[instruction_id]
             # Brute force for now.
             parameter_name = instruction['param']
