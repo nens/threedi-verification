@@ -13,10 +13,11 @@
     </h1>
   </div>
     
-  <!-- index -->
-
-  <!-- csv dump -->
-
+  {% if context.index_lines %}
+    {% for line in context.index_lines %}
+      <div>{{ line }}</div>
+     {% endfor %}
+  {% endif %}
 
   {% if context.log %}
 
@@ -74,6 +75,12 @@
       </tbody>
     </table>
 
+  {% endif %}
+
+  {% if context.csv_contents %}
+    <h2>Test instructions <small>for debug purposes</small></h2>
+    <p>This is what Python read from <code>{{ context.csv_filename }}</code>:</p>
+    <pre>{{ context.csv_contents }}</pre>
   {% endif %}
 
 

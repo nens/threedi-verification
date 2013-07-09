@@ -7,6 +7,7 @@ from __future__ import print_function
 from collections import defaultdict
 import argparse
 import csv
+import json
 import logging
 import os
 
@@ -58,6 +59,9 @@ class MduReport(object):
         self.instruction_reports = defaultdict(InstructionReport)
         self.loadable = True
         self.status = None
+        self.index_lines = []
+        self.csv_contents = None
+        self.csv_filename = None
 
     def __cmp__(self, other):
         return cmp(self.id, other.id)
@@ -66,6 +70,12 @@ class MduReport(object):
     def log_filename(self):
         id = self.id.replace('/', '-')
         return 'mdu_log_%s.html' % id
+
+    def record_instructions(self, instructions, csv_filename):
+        """Store a good representation of the csv instructions."""
+        self.csv_contents = json.dumps(instructions,
+                                       indent=4)
+        self.csv_filename = csv_filename
 
     @property
     def details_filename(self):
@@ -186,6 +196,7 @@ report = Report()
 
 def check_his(csv_filename, mdu_report=None):
     instructions = list(csv.DictReader(open(csv_filename), delimiter=';'))
+    mdu_report.record_instructions(instructions, csv_filename)
     netcdf_filename = 'subgrid_his.nc'
     with Dataset(netcdf_filename) as dataset:
         for test_number, instruction in enumerate(instructions):
@@ -244,6 +255,7 @@ def check_his(csv_filename, mdu_report=None):
 
 def check_map(csv_filename, mdu_report=None):
     instructions = list(csv.DictReader(open(csv_filename), delimiter=';'))
+    mdu_report.record_instructions(instructions, csv_filename)
     netcdf_filename = 'subgrid_map.nc'
     with Dataset(netcdf_filename) as dataset:
         for test_number, instruction in enumerate(instructions):
@@ -304,6 +316,8 @@ def run_simulation(mdu_filepath):
     mdu_report = report.mdu_reports[mdu_filepath]
     original_dir = os.getcwd()
     os.chdir(os.path.dirname(mdu_filepath))
+    if 'index.txt' in os.listdir('.'):
+        mdu_report.index_lines = open('index.txt').readlines()
     logger.debug("Loading %s...", mdu_filepath)
     cmd = '/opt/3di/bin/subgridf90 ' + os.path.basename(mdu_filepath)
     # ^^^ TODO: hardcoded.
