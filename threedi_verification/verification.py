@@ -198,9 +198,21 @@ def check_his(instruction, instruction_report, dataset):
 
     """
     logger.debug("Checking his")
+    # Admin stuff.
+    instruction_report.title = instruction['note']
+
+    # Parameter.
     parameter_name = instruction['param']
     instruction_report.parameter = parameter_name
-    instruction_report.title = instruction['note']
+    if not parameter_name in dataset.variables:
+        msg = "Parameter '%s' not found in %s" % (
+            parameter_name,
+            dataset.variables.keys())
+        instruction_report.log = msg
+        logger.error(msg)
+        return
+
+    # Expected value
     try:
         desired = float(instruction['ref'])
     except ValueError:
@@ -210,34 +222,56 @@ def check_his(instruction, instruction_report, dataset):
         logger.error(msg)
         desired = INVALID_DESIRED_VALUE
     instruction_report.desired = desired
-    if not parameter_name in dataset.variables:
-        msg = "Parameter '%s' not found in %s" % (
-            parameter_name,
-            dataset.variables.keys())
-        instruction_report.log = msg
-        logger.error(msg)
-        return
+
+
+
     parameter_values = dataset.variables[parameter_name][:]
-    # TODO: obs_name???
+
+    # Observation point
+    station_name = instruction['obs_name']
+    # import pdb;pdb.set_trace()
+    logger.debug("Using observation name %s", station_name)
+    station_id = 0
+    instruction_report.what.append(
+        "Using station index %s (%s), we only have one." % (
+            station_id, station_name))
+
+    # Time
     desired_time = instruction['time']
     if desired_time == 'SUM':
         logger.debug("Summing all values")
-        found = parameter_values.sum()
+        instruction_report.what.append("sum of all times")
+        desired_time_index = slice(None)  # [:]
     else:
         desired_time = float(desired_time)
         logger.debug("Looking up value for time %s", desired_time)
         # TODO: less brute force, if possible.
         time_values = list(dataset.variables['time'][:])
         try:
-            desired_index = time_values.index(desired_time)
+            desired_time_index = time_values.index(desired_time)
         except ValueError:
             msg = "Time %s not found in %s" % (desired_time, 
                                                time_values)
             instruction_report.log = msg
             logger.error(msg)
             return
-        # OOPS: no x/y stuff here. TODO.
-        found = parameter_values[desired_index][0]
+        instruction_report.what.append("time value %s at index %s" % (
+            desired_time, desired_time_index))
+
+    # Value lookup.
+    values = dataset.variables[parameter_name]
+    logger.debug("Shape before looking up times/station: %r", values.shape)
+    try:
+        values = values[desired_time_index, station_id]
+    except IndexError:
+        msg = "Index (%r, %r) not found. Shape of values is %r." % (
+            desired_time_index, flow_item, values.shape)
+        instruction_report.log = msg
+        logger.error(msg)
+        return
+
+    logger.debug("Shape after looking up times and station: %r", values.shape)
+    found = values.sum()
 
     instruction_report.found = found
     instruction_report.equal = (abs(desired - found) < 0.00001)
