@@ -303,7 +303,13 @@ def check_map(instruction, instruction_report, dataset):
         ),
     )
     # quad is a [False, False, True, False] mask.
-    flow_item = [index for index, value in enumerate(quad) if value][0]
+    try:
+        flow_item = [index for index, value in enumerate(quad) if value][0]
+    except IndexError:
+        msg = "x=%s, y=%s not found in grid" % (x, y)
+        instruction_report.log = msg
+        logger.error(msg)
+        return
     instruction_report.what.append("quad number %s (x=%s, y=%s)" % (
         flow_item, x, y))
 
