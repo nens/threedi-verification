@@ -26,6 +26,8 @@ CRASHED = 'Calculation core crashes'
 SOME_ERROR = 'Model loading problems'
 LOADED = 'Loaded fine'
 
+INVALID_DESIRED_VALUE = 1234567890  # Hardcoded in the template, too.
+
 
 class InstructionReport(object):
 
@@ -37,6 +39,8 @@ class InstructionReport(object):
         self.found = None
         self.equal = None
         self.title = None
+        self.invalid_desired_value = None
+        self.what = []
 
     def __cmp__(self, other):
         return cmp(self.id, other.id)
@@ -175,16 +179,7 @@ class Report(object):
         self._propagate_ids()
         self.write_template('index.html',
                             title='Overview')
-        # self.write_template('overview.html',
-        #                     title='Overview')
         for mdu in self.mdu_reports.values():
-            # if mdu.log:
-            #     title = "Log of %s" % mdu.title
-            #     self.write_template('mdu_log.html',
-            #                         title=mdu.title,
-            #                         outfile=mdu.log_filename,
-            #                         context=mdu)
-            title = mdu.short_title
             self.write_template('mdu.html',
                                 title=mdu.title,
                                 outfile=mdu.details_filename,
@@ -194,123 +189,223 @@ class Report(object):
 report = Report()
 
 
-def check_his(csv_filename, mdu_report=None):
-    instructions = list(csv.DictReader(open(csv_filename), delimiter=';'))
-    mdu_report.record_instructions(instructions, csv_filename)
-    netcdf_filename = 'subgrid_his.nc'
-    with Dataset(netcdf_filename) as dataset:
-        for test_number, instruction in enumerate(instructions):
-            instruction_id = csv_filename[:-4] + '-' + str(test_number)
-            # Note: previously we used instruction['testnr'], but we
-            # can enumerate them as easily ourselves.
-            instruction_report = mdu_report.instruction_reports[instruction_id]
-            # Brute force for now.
-            parameter_name = instruction['param']
-            instruction_report.parameter = parameter_name
-            instruction_report.title = instruction['note']
-            try:
-                desired = float(instruction['ref'])
-            except ValueError:
-                desired = instruction['ref']
-                msg = "Invalid non-float value: %s" % desired
-                instruction_report.log = msg
-                logger.error(msg)
-                continue
-            instruction_report.desired = desired
-            if not parameter_name in dataset.variables:
-                msg = "Parameter '%s' not found in %s" % (
-                    parameter_name,
-                    dataset.variables.keys())
-                instruction_report.log = msg
-                logger.error(msg)
-                continue
-            parameter_values = dataset.variables[parameter_name][:]
-            desired_time = instruction['time']
-            if desired_time == 'SUM':
-                logger.debug("Summing all values")
-                found = parameter_values.sum()
-            else:
-                desired_time = float(desired_time)
-                logger.debug("Looking up value for time %s", desired_time)
-                # TODO: less brute force, if possible.
-                time_values = list(dataset.variables['time'][:])
-                try:
-                    desired_index = time_values.index(desired_time)
-                except ValueError:
-                    msg = "Time %s not found in %s" % (desired_time, 
-                                                       time_values)
-                    instruction_report.log = msg
-                    logger.error(msg)
-                    continue
-                # OOPS: no x/y stuff here. TODO.
-                found = parameter_values[desired_index][0]
+def check_his(instruction, instruction_report, dataset):
+    """History check.
 
-            instruction_report.found = found
-            instruction_report.equal = (abs(desired - found) < 0.00001)
-            logger.info("Found value %s for parameter %s; desired=%s", 
-                        found,
-                        parameter_name,
-                        desired)
+    History checks work with observation points (which are present in
+    the netcdf file). The value we need to grab is an observation
+    name, a time and a parameter.
+
+    """
+    logger.debug("Checking his")
+    parameter_name = instruction['param']
+    instruction_report.parameter = parameter_name
+    instruction_report.title = instruction['note']
+    try:
+        desired = float(instruction['ref'])
+    except ValueError:
+        desired = instruction['ref']
+        msg = "Invalid non-float value: %r" % desired
+        instruction_report.invalid_desired_value = msg
+        logger.error(msg)
+        desired = INVALID_DESIRED_VALUE
+    instruction_report.desired = desired
+    if not parameter_name in dataset.variables:
+        msg = "Parameter '%s' not found in %s" % (
+            parameter_name,
+            dataset.variables.keys())
+        instruction_report.log = msg
+        logger.error(msg)
+        return
+    parameter_values = dataset.variables[parameter_name][:]
+    # TODO: obs_name???
+    desired_time = instruction['time']
+    if desired_time == 'SUM':
+        logger.debug("Summing all values")
+        found = parameter_values.sum()
+    else:
+        desired_time = float(desired_time)
+        logger.debug("Looking up value for time %s", desired_time)
+        # TODO: less brute force, if possible.
+        time_values = list(dataset.variables['time'][:])
+        try:
+            desired_index = time_values.index(desired_time)
+        except ValueError:
+            msg = "Time %s not found in %s" % (desired_time, 
+                                               time_values)
+            instruction_report.log = msg
+            logger.error(msg)
+            return
+        # OOPS: no x/y stuff here. TODO.
+        found = parameter_values[desired_index][0]
+
+    instruction_report.found = found
+    instruction_report.equal = (abs(desired - found) < 0.00001)
+    logger.info("Found value %s for parameter %s; desired=%s", 
+                found,
+                parameter_name,
+                desired)
 
 
-def check_map(csv_filename, mdu_report=None):
-    instructions = list(csv.DictReader(open(csv_filename), delimiter=';'))
-    mdu_report.record_instructions(instructions, csv_filename)
-    netcdf_filename = 'subgrid_map.nc'
-    with Dataset(netcdf_filename) as dataset:
-        for test_number, instruction in enumerate(instructions):
-            instruction_id = csv_filename[:-4] + '-' + str(test_number)
-            # Note: previously we used instruction['testnr'], but we
-            # can enumerate them as easily ourselves.
-            instruction_report = mdu_report.instruction_reports[instruction_id]
-            # Brute force for now.
-            parameter_name = instruction['param']
-            instruction_report.parameter = parameter_name
-            instruction_report.title = instruction['note']
-            try:
-                desired = float(instruction['ref'])
-            except ValueError:
-                desired = instruction['ref']
-                msg = "Invalid non-float value: %s" % desired
-                instruction_report.log = msg
-                logger.error(msg)
-                continue
-            instruction_report.desired = desired
-            if not parameter_name in dataset.variables:
-                msg = "Parameter '%s' not found in %s" % (
-                    parameter_name,
-                    dataset.variables.keys())
-                instruction_report.log = msg
-                logger.error(msg)
-                continue
-            parameter_values = dataset.variables[parameter_name][:]
-            desired_time = instruction['time']
-            if desired_time == 'SUM':
-                logger.debug("Summing all values")
-                found = parameter_values.sum()
-            else:
-                desired_time = float(desired_time)
-                logger.debug("Looking up value for time %s", desired_time)
-                # TODO: less brute force, if possible.
-                time_values = list(dataset.variables['time'][:])
-                try:
-                    desired_index = time_values.index(desired_time)
-                except ValueError:
-                    msg = "Time %s not found in %s" % (desired_time, 
-                                                       time_values)
-                    instruction_report.log = msg
-                    logger.error(msg)
-                    continue
-                # OOPS: no x/y stuff here. TODO.
-                found = parameter_values[desired_index][0]
+def check_map(instruction, instruction_report, dataset):
+    logger.debug("Checking regular map")
+    parameter_name = instruction['param']
+    instruction_report.parameter = parameter_name
+    instruction_report.title = instruction['note']
+    try:
+        desired = float(instruction['ref'])
+    except ValueError:
+        desired = instruction['ref']
+        msg = "Invalid non-float value: %r" % desired
+        instruction_report.invalid_desired_value = msg
+        logger.error(msg)
+        desired = INVALID_DESIRED_VALUE
+    instruction_report.desired = desired
+    if not parameter_name in dataset.variables:
+        msg = "Parameter '%s' not found in %s" % (
+            parameter_name,
+            dataset.variables.keys())
+        instruction_report.log = msg
+        logger.error(msg)
+        return
+    parameter_values = dataset.variables[parameter_name][:]
+    desired_time = instruction['time']
+    if desired_time == 'SUM':
+        logger.debug("Summing all values")
+        found = parameter_values.sum()
+    else:
+        desired_time = float(desired_time)
+        logger.debug("Looking up value for time %s", desired_time)
+        # TODO: less brute force, if possible.
+        time_values = list(dataset.variables['time'][:])
+        try:
+            desired_index = time_values.index(desired_time)
+        except ValueError:
+            msg = "Time %s not found in %s" % (desired_time, 
+                                               time_values)
+            instruction_report.log = msg
+            logger.error(msg)
+            return
+        # OOPS: no x/y stuff here. TODO.
+        found = parameter_values[desired_index][0]
 
-            instruction_report.found = found
-            instruction_report.equal = (abs(desired - found) < 0.00001)
-            logger.info("Found value %s for parameter %s; desired=%s", 
-                        found,
-                        parameter_name,
-                        desired)
+    instruction_report.found = found
+    instruction_report.equal = (abs(desired - found) < 0.00001)
+    logger.info("Found value %s for parameter %s; desired=%s", 
+                found,
+                parameter_name,
+                desired)
+
+
+def check_map_nflow(instruction, instruction_report, dataset):
+    logger.debug("Checking nflow")
+    # Admin stuff.
+    instruction_report.title = instruction['note']
+
+    # Parameter.
+    parameter_name = instruction['param']
+    instruction_report.parameter = parameter_name
+    if not parameter_name in dataset.variables:
+        msg = "Parameter '%s' not found in %s" % (
+            parameter_name,
+            dataset.variables.keys())
+        instruction_report.log = msg
+        logger.error(msg)
+        return
+
+    # Expected value
+    try:
+        desired = float(instruction['ref'])
+    except ValueError:
+        desired = instruction['ref']
+        msg = "Invalid non-float value: %r" % desired
+        instruction_report.invalid_desired_value = msg
+        logger.error(msg)
+        desired = INVALID_DESIRED_VALUE
+    instruction_report.desired = desired
+
+    # nflow
+    if 'nFlowElem' in instruction:
+        flow_item = instruction['nFlowElem']
+        logger.debug("Using nFlowElem %s", flow_item)
+    else:
+        flow_item = instruction['nFlowLink']
+        logger.debug("Using nFlowLink %s", flow_item)
+
+    if flow_item == 'SUM':
+        flow_item = slice(None)  # [:]
+        instruction_report.what.append("sum of all flow items")
+    else:
+        flow_item = int(flow_item) -1
+        instruction_report.what.append("nFlowLink at index %s" % flow_item)
+
+    # Time
+    desired_time = instruction['time']
+    if desired_time == 'SUM':
+        logger.debug("Summing all values")
+        instruction_report.what.append("sum of all times")
+        # found = parameter_values.sum()
+        desired_time_index = slice(None)  # [:]
+    else:
+        desired_time = float(desired_time)
+        logger.debug("Looking up value for time %s", desired_time)
+        # TODO: less brute force, if possible.
+        time_values = list(dataset.variables['time'][:])
+        try:
+            desired_time_index = time_values.index(desired_time)
+        except ValueError:
+            msg = "Time %s not found in %s" % (desired_time, 
+                                               time_values)
+            instruction_report.log = msg
+            logger.error(msg)
+            return
+        instruction_report.what.append("time value %s at index %s" % (
+            desired_time, desired_time_index))
+
+    # Value lookup.
+    values = dataset.variables[parameter_name]
+    logger.debug("Shape before looking up times/flowitems: %r", values.shape)
+    try:
+        values = values[desired_time_index, flow_item]
+    except IndexError:
+        msg = "Index (%r, %r) not found. Shape of values is %r." % (
+            desired_time_index, flow_item, values.shape)
+        instruction_report.log = msg
+        logger.error(msg)
+        return
+
+    logger.debug("Shape after looking up times and flowitems: %r", values.shape)
+    found = values.sum()
+
+    instruction_report.found = found
+    instruction_report.equal = (abs(desired - found) < 0.00001)
+    logger.info("Found value %s for parameter %s; desired=%s", 
+                found,
+                parameter_name,
+                desired)
                         
+
+def check_csv(csv_filename, mdu_report=None):
+    instructions = list(csv.DictReader(open(csv_filename), delimiter=';'))
+    mdu_report.record_instructions(instructions, csv_filename)
+    if 'his' in csv_filename:
+        netcdf_filename = 'subgrid_his.nc'
+    else:
+        netcdf_filename = 'subgrid_map.nc'
+    with Dataset(netcdf_filename) as dataset:
+        for test_number, instruction in enumerate(instructions):
+            instruction_id = csv_filename[:-4] + '-' + str(test_number)
+            instruction_report = mdu_report.instruction_reports[instruction_id]
+            if 'his' in csv_filename:
+                check_his(instruction, instruction_report, dataset)
+            else:
+                if ('nFlowLink' in instruction or
+                    'nFlowElem' in instruction):
+                    check_map_nflow(instruction, instruction_report, dataset)
+                else:
+                    check_map(instruction, instruction_report, dataset)
+
+
 
 def run_simulation(mdu_filepath):
     mdu_report = report.mdu_reports[mdu_filepath]
@@ -340,10 +435,7 @@ def run_simulation(mdu_filepath):
         csv_filenames = [f for f in os.listdir('.') if f.endswith('.csv')]
         for csv_filename in csv_filenames:
             logger.info("Reading instructions from %s", csv_filename)
-            if 'his' in csv_filename:
-                check_his(csv_filename, mdu_report=mdu_report)
-            else:
-                check_map(csv_filename, mdu_report=mdu_report)
+            check_csv(csv_filename, mdu_report=mdu_report)
     os.chdir(original_dir)
 
 

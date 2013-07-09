@@ -36,6 +36,7 @@
           <th>Parameter</th>
           <th>Expected</th>
           <th>Found</th>
+          <th>What</th>
           <th>Note</th>
         </tr>
       </thead>
@@ -66,6 +67,12 @@
                   {{ instruction.found }}
                 </span>
               {% endif %}
+            </td>
+            <td>
+              {% for comment in instruction.what %}
+                {{ comment }}
+                {% if not loop.latest %}<br />{% endif %}
+              {% endfor %}
             </td>
             <td>
               {{ instruction.title }}

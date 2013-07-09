@@ -78,7 +78,14 @@
               {{ instruction.parameter }}
             </td>
             <td>
-              {{ instruction.desired }}
+              {% if instruction.invalid_desired_value %}
+                <span class="wrong">
+                  <i class="icon-remove"></i>
+                  {{ instruction.invalid_desired_value }}
+                </span>
+              {% else %}
+                {{ instruction.desired }}
+              {% endif %}
             </td>
             <td>
               {% if instruction.equal %}
