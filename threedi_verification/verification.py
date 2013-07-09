@@ -249,9 +249,21 @@ def check_his(instruction, instruction_report, dataset):
 
 def check_map(instruction, instruction_report, dataset):
     logger.debug("Checking regular map")
+    # Admin stuff
+    instruction_report.title = instruction['note']
+
+    # Parameter
     parameter_name = instruction['param']
     instruction_report.parameter = parameter_name
-    instruction_report.title = instruction['note']
+    if not parameter_name in dataset.variables:
+        msg = "Parameter '%s' not found in %s" % (
+            parameter_name,
+            dataset.variables.keys())
+        instruction_report.log = msg
+        logger.error(msg)
+        return
+
+    # Expected value
     try:
         desired = float(instruction['ref'])
     except ValueError:
@@ -261,33 +273,72 @@ def check_map(instruction, instruction_report, dataset):
         logger.error(msg)
         desired = INVALID_DESIRED_VALUE
     instruction_report.desired = desired
-    if not parameter_name in dataset.variables:
-        msg = "Parameter '%s' not found in %s" % (
-            parameter_name,
-            dataset.variables.keys())
+
+    # x/y
+    if not ('x' in instruction and 'y' in instruction):
+        msg = "x and/or y not found in instruction: %r" % (
+            instruction.keys())
         instruction_report.log = msg
         logger.error(msg)
         return
-    parameter_values = dataset.variables[parameter_name][:]
+    x = float(instruction['x'])
+    y = float(instruction['y'])
+    # TODO: SUM
+
+    fcx = dataset.variables['FlowElemContour_x']
+    fcy = dataset.variables['FlowElemContour_y']
+    x1 = fcx[:].min(1)
+    x2 = fcx[:].max(1)
+    y1 = fcy[:].min(1)
+    y2 = fcy[:].max(1)
+    # Find the quad ("FlowElem") at point x, y
+    quad = np.logical_and(
+        np.logical_and(
+            x1 < x,
+            x2 > x,
+        ),
+        np.logical_and(
+            y1 < y,
+            y2 > y,
+        ),
+    )
+
+    # Time
     desired_time = instruction['time']
     if desired_time == 'SUM':
         logger.debug("Summing all values")
-        found = parameter_values.sum()
+        instruction_report.what.append("sum of all times")
+        desired_time_index = slice(None)  # [:]
     else:
         desired_time = float(desired_time)
         logger.debug("Looking up value for time %s", desired_time)
         # TODO: less brute force, if possible.
         time_values = list(dataset.variables['time'][:])
         try:
-            desired_index = time_values.index(desired_time)
+            desired_time_index = time_values.index(desired_time)
         except ValueError:
             msg = "Time %s not found in %s" % (desired_time, 
                                                time_values)
             instruction_report.log = msg
             logger.error(msg)
             return
-        # OOPS: no x/y stuff here. TODO.
-        found = parameter_values[desired_index][0]
+        instruction_report.what.append("time value %s at index %s" % (
+            desired_time, desired_time_index))
+
+    # Value lookup.
+    values = dataset.variables[parameter_name]
+    logger.debug("Shape before looking up times/x,y: %r", values.shape)
+    try:
+        values = values[desired_time_index, quad]
+    except IndexError:
+        msg = "Index (%r, %r) not found. Shape of values is %r." % (
+            desired_time_index, quad, values.shape)
+        instruction_report.log = msg
+        logger.error(msg)
+        return
+
+    logger.debug("Shape after looking up times and x,y: %r", values.shape)
+    found = values.sum()
 
     instruction_report.found = found
     instruction_report.equal = (abs(desired - found) < 0.00001)
@@ -344,7 +395,6 @@ def check_map_nflow(instruction, instruction_report, dataset):
     if desired_time == 'SUM':
         logger.debug("Summing all values")
         instruction_report.what.append("sum of all times")
-        # found = parameter_values.sum()
         desired_time_index = slice(None)  # [:]
     else:
         desired_time = float(desired_time)
