@@ -2,77 +2,106 @@
 
 {% block main %}
   <div class="page-header">
-    <h1>{{ title }}</h1>
+    <h1>{{ title }} <small>detailed model tests</small></h1>
   </div>
 
-  {% for mdu in view.mdus %}
-    <h2>
-      {% if mdu.loadable %}
-        <i class="icon-ok good"></i>
-      {% else %}
-        <i class="icon-remove wrong"></i>
-      {% endif %}
-      {{ mdu.title }}
-    </h2>
-    {% if mdu.log %}
+  <p>
+    The calculation core ("<i>rekenkern</i>") is verified
+    automatically by giving it small test cases and comparing the
+    output. It is done every time something changes in the calculation
+    core, so this is a great way for <b>ensuring and monitoring
+    correctness</b>.
+  </p>
+  <p>
+    The current summary:
+  </p>
+  <ul>
+    {% for summary_item in view.summary_items %}
+      <li>{{ summary_item }}</li>
+    {% endfor %}
+  </ul>
 
-      <div class="alert alert-error">
-        <pre>{{ mdu.log_summary }}</pre>
-        <a href="{{ mdu.log_filename }}"
-           title="Logfile">
-          <i class="icon-file-text-alt"></i> Full logfile
-        </a>
-      </div>
+  <h2>Calculation core crashes and model loading problems</h2>
 
-    {% else %}
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Testcase</th>
+        <th>Error</th>
+        <th>Full logfile</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for mdu in view.problem_mdus %}
+        <tr>
+          <td>
+            <i class="icon-remove wrong"></i>
+            {{ mdu.short_title }}
+          </td>
+          <td>
+            <pre>{{ mdu.log_summary }}</pre>
+          </td>
+          <td>
+            <a href="{{ mdu.log_filename }}"
+               title="Logfile">
+              <i class="icon-file-text-alt"></i> Logfile
+            </a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
-      <table class="table table-bordered">
-        <thead>
+  <h2>Test overview</h2>
+
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Testcase</th>
+        <th>Parameter</th>
+        <th>Expected</th>
+        <th>Found</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for mdu in view.loaded_mdus %}
+        {% for instruction in mdu.instructions %}
           <tr>
-            <th>Parameter</th>
-            <th>Expected</th>
-            <th>Found</th>
-            <th>Note</th>
+            {% if loop.first %}
+              <td rowspan="{{ mdu.num_instructions }}">
+                {{ mdu.short_title }}
+                <!-- TODO: link to full page on MDU including index.txt -->
+              </td>
+            {% endif %}
+            <td>
+              {{ instruction.parameter }}
+            </td>
+            <td>
+              {{ instruction.desired }}
+            </td>
+            <td>
+              {% if instruction.equal %}
+                <span class="good">
+                  <i class="icon-ok"></i>
+                  {{ instruction.found }}
+                </span>
+              {% elif instruction.log %}
+                <span class="wrong has-tooltip"
+                      title="{{ instruction.shortlog|escape }}">
+                  <i class="icon-remove"></i>
+                  An error occurred
+                </span>
+              {% else %}
+                <span class="wrong">
+                  <i class="icon-remove"></i>
+                  {{ instruction.found }}
+                </span>
+              {% endif %}
+            </td>
           </tr>
-        </thead>
-        <tbody>
-          {% for instruction in mdu.instructions %}
-            <tr>
-              <td>
-                {{ instruction.parameter }}
-              </td>
-              <td>
-                {{ instruction.desired }}
-              </td>
-              <td>
-                {% if instruction.equal %}
-                  <span class="good">
-                    <i class="icon-ok"></i>
-                    {{ instruction.found }}
-                  </span>
-                {% elif instruction.log %}
-                  <span class="wrong has-tooltip"
-                        title="{{ instruction.shortlog|escape }}">
-                    <i class="icon-remove"></i>
-                    An error occurred
-                  </span>
-                {% else %}
-                  <span class="wrong">
-                    <i class="icon-remove"></i>
-                    {{ instruction.found }}
-                  </span>
-                {% endif %}
-              </td>
-              <td>
-                {{ instruction.title }}
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-
-    {% endif %}
-
-  {% endfor %}
+        {% endfor %}
+      {% endfor %}
+    </tbody>
+  </table>
 
 {% endblock main %}

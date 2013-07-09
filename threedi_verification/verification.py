@@ -21,6 +21,9 @@ logger = logging.getLogger(__name__)
 
 OUTDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 
                                       '..', 'var', 'html'))
+CRASHED = 'Calculation core crashes'
+SOME_ERROR = 'Model loading problems'
+LOADED = 'Loaded fine'
 
 
 class InstructionReport(object):
@@ -54,6 +57,7 @@ class MduReport(object):
         self.id = None
         self.instruction_reports = defaultdict(InstructionReport)
         self.loadable = True
+        self.status = None
 
     def __cmp__(self, other):
         return cmp(self.id, other.id)
@@ -73,8 +77,21 @@ class MduReport(object):
         return self.id.split('/testbank/')[1]
 
     @property
+    def short_title(self):
+        parts = self.title.split('/')
+        short = parts[-1]
+        short = short.rstrip('.mdu')
+        short = short.replace('_', ' ')
+        return short
+
+    @property
     def instructions(self):
         return sorted(self.instruction_reports.values())
+
+    @property
+    def num_instructions(self):
+        """Return number of instructions; used for table rowspan."""
+        return len(self.instructions)
 
 
 class Report(object):
@@ -106,9 +123,43 @@ class Report(object):
     def mdus(self):
         return sorted(self.mdu_reports.values())
 
+    @property
+    def problem_mdus(self):
+        return [mdu for mdu in self.mdus 
+                if mdu.status in [CRASHED, SOME_ERROR]]
+
+    @property
+    def loaded_mdus(self):
+        return [mdu for mdu in self.mdus 
+                if mdu.status not in [CRASHED, SOME_ERROR]]
+
+    @property
+    def summary_items(self):
+        result = []
+        for status in [CRASHED, SOME_ERROR, LOADED]:
+            number = len([mdu for mdu in self.mdus if mdu.status == status])
+            result.append("%s: %s" % (status, number))
+        successful_tests = 0
+        failed_tests = 0
+        errored_tests = 0
+        for mdu in self.mdus:
+            for instruction in mdu.instructions:
+                if instruction.equal:
+                    successful_tests += 1
+                elif instruction.log:
+                    errored_tests += 1
+                else:
+                    failed_tests += 1
+        result.append("Tests with setup errors: %s" % errored_tests)
+        result.append("Failed tests: %s" % failed_tests)
+        result.append("Successful tests: %s" % successful_tests)
+        return result
+
     def export_reports(self):
         self._propagate_ids()
         self.write_template('index.html',
+                            title='Overview')
+        self.write_template('overview.html',
                             title='Overview')
         for mdu in self.mdu_reports.values():
             if mdu.log:
@@ -169,6 +220,7 @@ def check_his(csv_filename, mdu_report=None):
                     instruction_report.log = msg
                     logger.error(msg)
                     continue
+                # OOPS: no x/y stuff here. TODO.
                 found = parameter_values[desired_index][0]
 
             instruction_report.found = found
@@ -226,6 +278,7 @@ def check_map(csv_filename, mdu_report=None):
                     instruction_report.log = msg
                     logger.error(msg)
                     continue
+                # OOPS: no x/y stuff here. TODO.
                 found = parameter_values[desired_index][0]
 
             instruction_report.found = found
@@ -242,8 +295,8 @@ def run_simulation(mdu_filepath):
     os.chdir(os.path.dirname(mdu_filepath))
     logger.debug("Loading %s...", mdu_filepath)
     cmd = '/opt/3di/bin/subgridf90 ' + os.path.basename(mdu_filepath)
-    logger.debug("Running %s", cmd)
     # ^^^ TODO: hardcoded.
+    logger.debug("Running %s", cmd)
     exit_code, output = system(cmd)
     last_output = ''.join(output.split('\n')[-2:]).lower()
     if exit_code or ('error' in last_output 
@@ -251,7 +304,12 @@ def run_simulation(mdu_filepath):
         logger.error("Loading failed: %s", mdu_filepath)
         mdu_report.loadable = False
         mdu_report.log = output
+        if 'Segmentation fault' in output:
+            mdu_report.status = CRASHED
+        else:
+            mdu_report.status = SOME_ERROR
     else:
+        mdu_report.status = LOADED
         logger.info("Successfully loaded: %s", mdu_filepath)
         mdu_report.successfully_loaded_log = output 
         csv_filenames = [f for f in os.listdir('.') if f.endswith('.csv')]
