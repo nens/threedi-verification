@@ -68,6 +68,12 @@ class MduReport(object):
         return 'mdu_log_%s.html' % id
 
     @property
+    def details_filename(self):
+        id = self.id.split('/testbank/')[1]
+        id = id.replace('/', '-')
+        return 'details_%s.html' % id
+
+    @property
     def log_summary(self):
         last_lines = self.log.split('\n')[-3:]
         return '\n'.join(last_lines)
@@ -159,15 +165,20 @@ class Report(object):
         self._propagate_ids()
         self.write_template('index.html',
                             title='Overview')
-        self.write_template('overview.html',
-                            title='Overview')
+        # self.write_template('overview.html',
+        #                     title='Overview')
         for mdu in self.mdu_reports.values():
-            if mdu.log:
-                title = "Log of %s" % mdu.title
-                self.write_template('mdu_log.html',
-                                    title=mdu.title,
-                                    outfile=mdu.log_filename,
-                                    context=mdu)
+            # if mdu.log:
+            #     title = "Log of %s" % mdu.title
+            #     self.write_template('mdu_log.html',
+            #                         title=mdu.title,
+            #                         outfile=mdu.log_filename,
+            #                         context=mdu)
+            title = mdu.short_title
+            self.write_template('mdu.html',
+                                title=mdu.title,
+                                outfile=mdu.details_filename,
+                                context=mdu)
 
                     
 report = Report()

@@ -42,7 +42,7 @@
             <pre>{{ mdu.log_summary }}</pre>
           </td>
           <td>
-            <a href="{{ mdu.log_filename }}"
+            <a href="{{ mdu.details_filename }}"
                title="Logfile">
               <i class="icon-file-text-alt"></i> Logfile
             </a>
@@ -69,8 +69,9 @@
           <tr>
             {% if loop.first %}
               <td rowspan="{{ mdu.num_instructions }}">
-                {{ mdu.short_title }}
-                <!-- TODO: link to full page on MDU including index.txt -->
+                <a href="{{ mdu.details_filename }}">
+                  {{ mdu.short_title }}
+                </a>
               </td>
             {% endif %}
             <td>

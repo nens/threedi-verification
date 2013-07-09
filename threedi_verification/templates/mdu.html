@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block main %}
+  <div class="page-header">
+    <h1>
+      {% if context.loadable %}
+        <i class="icon-ok good"></i>
+      {% else %}
+        <i class="icon-remove wrong"></i>
+      {% endif %}
+      {{ context.short_title }}
+      <small>{{ context.title }}</small>
+    </h1>
+  </div>
+    
+  <!-- index -->
+
+  <!-- csv dump -->
+
+
+  {% if context.log %}
+
+    <h2>Log of the crash or model problem</h2>
+    <div class="alert alert-error">
+      <pre>{{ context.log_summary }}</pre>
+    </div>
+    <p>Full log:</p>
+    <pre>{{ context.log }}</pre>
+
+  {% else %}
+
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Parameter</th>
+          <th>Expected</th>
+          <th>Found</th>
+          <th>Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for instruction in context.instructions %}
+          <tr>
+            <td>
+              {{ instruction.parameter }}
+            </td>
+            <td>
+              {{ instruction.desired }}
+            </td>
+            <td>
+              {% if instruction.equal %}
+                <span class="good">
+                  <i class="icon-ok"></i>
+                  {{ instruction.found }}
+                </span>
+              {% elif instruction.log %}
+                <span class="wrong has-tooltip"
+                      title="{{ instruction.shortlog|escape }}">
+                  <i class="icon-remove"></i>
+                  An error occurred
+                </span>
+              {% else %}
+                <span class="wrong">
+                  <i class="icon-remove"></i>
+                  {{ instruction.found }}
+                </span>
+              {% endif %}
+            </td>
+            <td>
+              {{ instruction.title }}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  {% endif %}
+
+
+{% endblock main %}
