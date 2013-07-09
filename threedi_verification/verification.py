@@ -274,7 +274,7 @@ def check_map(instruction, instruction_report, dataset):
         desired = INVALID_DESIRED_VALUE
     instruction_report.desired = desired
 
-    # x/y
+    # x/y lookup
     if not ('x' in instruction and 'y' in instruction):
         msg = "x and/or y not found in instruction: %r" % (
             instruction.keys())
@@ -302,6 +302,10 @@ def check_map(instruction, instruction_report, dataset):
             y2 > y,
         ),
     )
+    # quad is a [False, False, True, False] mask.
+    flow_item = [index for index, value in enumerate(quad) if value][0]
+    instruction_report.what.append("quad number %s (x=%s, y=%s)" % (
+        flow_item, x, y))
 
     # Time
     desired_time = instruction['time']
@@ -329,7 +333,7 @@ def check_map(instruction, instruction_report, dataset):
     values = dataset.variables[parameter_name]
     logger.debug("Shape before looking up times/x,y: %r", values.shape)
     try:
-        values = values[desired_time_index, quad]
+        values = values[desired_time_index, flow_item]
     except IndexError:
         msg = "Index (%r, %r) not found. Shape of values is %r." % (
             desired_time_index, quad, values.shape)
