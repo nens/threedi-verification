@@ -223,10 +223,6 @@ def check_his(instruction, instruction_report, dataset):
         desired = INVALID_DESIRED_VALUE
     instruction_report.desired = desired
 
-
-
-    parameter_values = dataset.variables[parameter_name][:]
-
     # Observation point
     station_name = instruction['obs_name']
     # import pdb;pdb.set_trace()
@@ -328,12 +324,12 @@ def check_map(instruction, instruction_report, dataset):
     # Find the quad ("FlowElem") at point x, y
     quad = np.logical_and(
         np.logical_and(
-            x1 < x,
-            x2 > x,
+            x1 <= x,
+            x2 >= x,
         ),
         np.logical_and(
-            y1 < y,
-            y2 > y,
+            y1 <= y,
+            y2 >= y,
         ),
     )
     # quad is a [False, False, True, False] mask.
