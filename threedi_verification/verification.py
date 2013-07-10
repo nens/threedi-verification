@@ -274,12 +274,22 @@ def check_his(instruction, instruction_report, dataset):
 
     # Observation point
     station_name = instruction['obs_name']
-    # import pdb;pdb.set_trace()
-    logger.debug("Using observation name %s", station_name)
-    location_index = 0
-    instruction_report.what.append(
-        "Using station index %s (%s), we only have one." % (
-            location_index, station_name))
+    station_names = list(
+        [''.join(name.data)
+         for name in dataset.variables['station_name'][:]])
+    try:
+        location_index = station_names.index(station_name)
+    except ValueError:
+        msg = "Station name %s not found in %r." % (
+            station_name, station_names)
+        instruction_report.log = msg
+        logger.error(msg)
+        return
+
+    msg = "Using station name %s at index %s." % (
+        station_name, location_index)
+    instruction_report.what.append(msg)
+    logger.debug(msg)
 
     # Time
     desired_time_index = _desired_time_index(instruction, instruction_report, dataset)
