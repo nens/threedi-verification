@@ -193,12 +193,12 @@ def _desired_time_index(instruction, instruction_report, dataset):
     # Time
     desired_time = instruction['time']
     if desired_time == 'SUM':
-        logger.debug("Summing all time values")
+        logger.debug("We want to sum all time values")
         instruction_report.what.append("sum of all times")
         desired_time_index = slice(None)  # [:]
     else:
         desired_time = float(desired_time)
-        logger.debug("Looking up value for time %s", desired_time)
+        logger.debug("Desired time: %s", desired_time)
         # TODO: less brute force, if possible.
         time_values = list(dataset.variables['time'][:])
         try:
@@ -211,12 +211,15 @@ def _desired_time_index(instruction, instruction_report, dataset):
             return
         instruction_report.what.append("time value %s at index %s" % (
             desired_time, desired_time_index))
+    return desired_time_index
 
 
 def _value_lookup(dataset, parameter_name, desired_time_index, location_index, instruction_report):
     values = dataset.variables[parameter_name]
     logger.debug("Shape before looking up times/location: %r", values.shape)
     try:
+        logger.debug("Looking up time %r and location %r", 
+                     desired_time_index, location_index)
         values = values[desired_time_index, location_index]
     except IndexError:
         msg = "Index (%r, %r) not found. Shape of values is %r." % (
