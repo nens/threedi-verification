@@ -413,7 +413,7 @@ def check_map_nflow(instruction, instruction_report, dataset):
         flow_item = slice(None)  # [:]
         instruction_report.what.append("sum of all flow items")
     else:
-        flow_item = int(flow_item) -1
+        flow_item = int(flow_item)
         instruction_report.what.append("nFlowLink at index %s" % flow_item)
 
     # Time
