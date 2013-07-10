@@ -373,20 +373,6 @@ def check_map(instruction, instruction_report, dataset):
     if found is None:
         return
 
-    values = dataset.variables[parameter_name]
-    logger.debug("Shape before looking up times/x,y: %r", values.shape)
-    try:
-        values = values[desired_time_index, flow_item]
-    except IndexError:
-        msg = "Index (%r, %r) not found. Shape of values is %r." % (
-            desired_time_index, quad, values.shape)
-        instruction_report.log = msg
-        logger.error(msg)
-        return
-
-    logger.debug("Shape after looking up times and x,y: %r", values.shape)
-    found = values.sum()
-
     instruction_report.found = found
     instruction_report.equal = (abs(desired - found) < 0.00001)
     logger.info("Found value %s for parameter %s; desired=%s", 
