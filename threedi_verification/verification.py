@@ -193,7 +193,7 @@ def _desired_time_index(instruction, instruction_report, dataset):
     # Time
     desired_time = instruction['time']
     if desired_time == 'SUM':
-        logger.debug("Summing all values")
+        logger.debug("Summing all time values")
         instruction_report.what.append("sum of all times")
         desired_time_index = slice(None)  # [:]
     else:
@@ -223,6 +223,12 @@ def _value_lookup(dataset, parameter_name, desired_time_index, location_index, i
             desired_time_index, location_index, values.shape)
         instruction_report.log = msg
         logger.error(msg)
+        return
+    except MemoryError:
+        msg = "Index (%r, %r) not found because of memory error. Shape of values is %r." % (
+            desired_time_index, location_index, values.shape)
+        instruction_report.log = msg
+        logger.exception(msg)
         return
 
     logger.debug("Shape after looking up times and location: %r", values.shape)
@@ -274,6 +280,8 @@ def check_his(instruction, instruction_report, dataset):
 
     # Time
     desired_time_index = _desired_time_index(instruction, instruction_report, dataset)
+    if desired_time_index is None:
+        return
 
     # Value lookup.
     found = _value_lookup(dataset, parameter_name, desired_time_index, location_index, instruction_report)
@@ -357,6 +365,8 @@ def check_map(instruction, instruction_report, dataset):
 
     # Time
     desired_time_index = _desired_time_index(instruction, instruction_report, dataset)
+    if desired_time_index is None:
+        return
 
     # Value lookup.
     found = _value_lookup(dataset, parameter_name, desired_time_index, location_index, instruction_report)
@@ -429,6 +439,8 @@ def check_map_nflow(instruction, instruction_report, dataset):
 
     # Time
     desired_time_index = _desired_time_index(instruction, instruction_report, dataset)
+    if desired_time_index is None:
+        return
     
     # Value lookup.
     found = _value_lookup(dataset, parameter_name, desired_time_index, location_index, instruction_report)
