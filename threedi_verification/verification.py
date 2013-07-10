@@ -213,6 +213,22 @@ def _desired_time_index(instruction, instruction_report, dataset):
             desired_time, desired_time_index))
 
 
+def _value_lookup(dataset, parameter_name, desired_time_index, location_index, instruction_report):
+    values = dataset.variables[parameter_name]
+    logger.debug("Shape before looking up times/location: %r", values.shape)
+    try:
+        values = values[desired_time_index, location_index]
+    except IndexError:
+        msg = "Index (%r, %r) not found. Shape of values is %r." % (
+            desired_time_index, location_index, values.shape)
+        instruction_report.log = msg
+        logger.error(msg)
+        return
+
+    logger.debug("Shape after looking up times and location: %r", values.shape)
+    return values.sum()
+
+
 def check_his(instruction, instruction_report, dataset):
     """History check.
 
@@ -251,28 +267,18 @@ def check_his(instruction, instruction_report, dataset):
     station_name = instruction['obs_name']
     # import pdb;pdb.set_trace()
     logger.debug("Using observation name %s", station_name)
-    station_id = 0
+    location_index = 0
     instruction_report.what.append(
         "Using station index %s (%s), we only have one." % (
-            station_id, station_name))
+            location_index, station_name))
 
     # Time
     desired_time_index = _desired_time_index(instruction, instruction_report, dataset)
 
     # Value lookup.
-    values = dataset.variables[parameter_name]
-    logger.debug("Shape before looking up times/station: %r", values.shape)
-    try:
-        values = values[desired_time_index, station_id]
-    except IndexError:
-        msg = "Index (%r, %r) not found. Shape of values is %r." % (
-            desired_time_index, station_id, values.shape)
-        instruction_report.log = msg
-        logger.error(msg)
+    found = _value_lookup(dataset, parameter_name, desired_time_index, location_index, instruction_report)
+    if found is None:
         return
-
-    logger.debug("Shape after looking up times and station: %r", values.shape)
-    found = values.sum()
 
     instruction_report.found = found
     instruction_report.equal = (abs(desired - found) < 0.001)
@@ -339,19 +345,24 @@ def check_map(instruction, instruction_report, dataset):
     )
     # quad is a [False, False, True, False] mask.
     try:
-        flow_item = [index for index, value in enumerate(quad) if value][0]
+        location_index = [index for index, value in enumerate(quad) if value][0]
+        # ^^^ TODO: Is this right?
     except IndexError:
         msg = "x=%s, y=%s not found in grid" % (x, y)
         instruction_report.log = msg
         logger.error(msg)
         return
     instruction_report.what.append("quad number %s (x=%s, y=%s)" % (
-        flow_item, x, y))
+        location_index, x, y))
 
     # Time
     desired_time_index = _desired_time_index(instruction, instruction_report, dataset)
 
     # Value lookup.
+    found = _value_lookup(dataset, parameter_name, desired_time_index, location_index, instruction_report)
+    if found is None:
+        return
+
     values = dataset.variables[parameter_name]
     logger.debug("Shape before looking up times/x,y: %r", values.shape)
     try:
@@ -418,21 +429,11 @@ def check_map_nflow(instruction, instruction_report, dataset):
 
     # Time
     desired_time_index = _desired_time_index(instruction, instruction_report, dataset)
-
+    
     # Value lookup.
-    values = dataset.variables[parameter_name]
-    logger.debug("Shape before looking up times/flowitems: %r", values.shape)
-    try:
-        values = values[desired_time_index, flow_item]
-    except IndexError:
-        msg = "Index (%r, %r) not found. Shape of values is %r." % (
-            desired_time_index, flow_item, values.shape)
-        instruction_report.log = msg
-        logger.error(msg)
+    found = _value_lookup(dataset, parameter_name, desired_time_index, location_index, instruction_report)
+    if found is None:
         return
-
-    logger.debug("Shape after looking up times and flowitems: %r", values.shape)
-    found = values.sum()
 
     instruction_report.found = found
     instruction_report.equal = (abs(desired - found) < 0.00001)
