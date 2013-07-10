@@ -64,8 +64,7 @@ class MduReport(object):
         self.loadable = True
         self.status = None
         self.index_lines = []
-        self.csv_contents = None
-        self.csv_filename = None
+        self.csv_contents = []
 
     def __cmp__(self, other):
         return cmp(self.id, other.id)
@@ -77,9 +76,9 @@ class MduReport(object):
 
     def record_instructions(self, instructions, csv_filename):
         """Store a good representation of the csv instructions."""
-        self.csv_contents = json.dumps(instructions,
-                                       indent=4)
-        self.csv_filename = csv_filename
+        contents = json.dumps(instructions, indent=4)
+        self.csv_contents.append({'filename': csv_filename,
+                                  'contents': contents})
 
     @property
     def details_filename(self):
@@ -483,7 +482,8 @@ def run_simulation(mdu_filepath):
     if 'index.txt' in os.listdir('.'):
         mdu_report.index_lines = open('index.txt').readlines()
     logger.debug("Loading %s...", mdu_filepath)
-    cmd = '/opt/3di/bin/subgridf90 ' + os.path.basename(mdu_filepath)
+    cmd = '/opt/3di/bin/subgridf90 %s --autostartstop' % os.path.basename(
+        mdu_filepath)
     # ^^^ TODO: hardcoded.
     logger.debug("Running %s", cmd)
     exit_code, output = system(cmd)
