@@ -12,6 +12,7 @@ install_requires = [
     'setuptools',
     'netCDF4',
     'Jinja2',
+    'ipdb',
     ],
 
 tests_require = [
