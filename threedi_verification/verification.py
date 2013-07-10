@@ -413,18 +413,18 @@ def check_map_nflow(instruction, instruction_report, dataset):
 
     # nflow
     if 'nFlowElem' in instruction:
-        flow_item = instruction['nFlowElem']
-        logger.debug("Using nFlowElem %s", flow_item)
+        location_index = instruction['nFlowElem']
+        logger.debug("Using nFlowElem %s", location_index)
     else:
-        flow_item = instruction['nFlowLink']
-        logger.debug("Using nFlowLink %s", flow_item)
+        location_index = instruction['nFlowLink']
+        logger.debug("Using nFlowLink %s", location_index)
 
-    if flow_item == 'SUM':
-        flow_item = slice(None)  # [:]
+    if location_index == 'SUM':
+        location_index = slice(None)  # [:]
         instruction_report.what.append("sum of all flow items")
     else:
-        flow_item = int(flow_item)
-        instruction_report.what.append("nFlowLink at index %s" % flow_item)
+        location_index = int(location_index)
+        instruction_report.what.append("nFlowLink at index %s" % location_index)
 
     # Time
     desired_time_index = _desired_time_index(instruction, instruction_report, dataset)
