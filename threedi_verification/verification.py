@@ -266,7 +266,7 @@ def check_his(instruction, instruction_report, dataset):
         values = values[desired_time_index, station_id]
     except IndexError:
         msg = "Index (%r, %r) not found. Shape of values is %r." % (
-            desired_time_index, flow_item, values.shape)
+            desired_time_index, station_id, values.shape)
         instruction_report.log = msg
         logger.error(msg)
         return
@@ -275,7 +275,7 @@ def check_his(instruction, instruction_report, dataset):
     found = values.sum()
 
     instruction_report.found = found
-    instruction_report.equal = (abs(desired - found) < 0.00001)
+    instruction_report.equal = (abs(desired - found) < 0.001)
     logger.info("Found value %s for parameter %s; desired=%s", 
                 found,
                 parameter_name,
