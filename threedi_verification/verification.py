@@ -189,6 +189,30 @@ class Report(object):
 report = Report()
 
 
+def _desired_time_index(instruction, instruction_report, dataset):
+    # Time
+    desired_time = instruction['time']
+    if desired_time == 'SUM':
+        logger.debug("Summing all values")
+        instruction_report.what.append("sum of all times")
+        desired_time_index = slice(None)  # [:]
+    else:
+        desired_time = float(desired_time)
+        logger.debug("Looking up value for time %s", desired_time)
+        # TODO: less brute force, if possible.
+        time_values = list(dataset.variables['time'][:])
+        try:
+            desired_time_index = time_values.index(desired_time)
+        except ValueError:
+            msg = "Time %s not found in %s" % (desired_time, 
+                                               time_values)
+            instruction_report.log = msg
+            logger.error(msg)
+            return
+        instruction_report.what.append("time value %s at index %s" % (
+            desired_time, desired_time_index))
+
+
 def check_his(instruction, instruction_report, dataset):
     """History check.
 
@@ -233,26 +257,7 @@ def check_his(instruction, instruction_report, dataset):
             station_id, station_name))
 
     # Time
-    desired_time = instruction['time']
-    if desired_time == 'SUM':
-        logger.debug("Summing all values")
-        instruction_report.what.append("sum of all times")
-        desired_time_index = slice(None)  # [:]
-    else:
-        desired_time = float(desired_time)
-        logger.debug("Looking up value for time %s", desired_time)
-        # TODO: less brute force, if possible.
-        time_values = list(dataset.variables['time'][:])
-        try:
-            desired_time_index = time_values.index(desired_time)
-        except ValueError:
-            msg = "Time %s not found in %s" % (desired_time, 
-                                               time_values)
-            instruction_report.log = msg
-            logger.error(msg)
-            return
-        instruction_report.what.append("time value %s at index %s" % (
-            desired_time, desired_time_index))
+    desired_time_index = _desired_time_index(instruction, instruction_report, dataset)
 
     # Value lookup.
     values = dataset.variables[parameter_name]
@@ -344,26 +349,7 @@ def check_map(instruction, instruction_report, dataset):
         flow_item, x, y))
 
     # Time
-    desired_time = instruction['time']
-    if desired_time == 'SUM':
-        logger.debug("Summing all values")
-        instruction_report.what.append("sum of all times")
-        desired_time_index = slice(None)  # [:]
-    else:
-        desired_time = float(desired_time)
-        logger.debug("Looking up value for time %s", desired_time)
-        # TODO: less brute force, if possible.
-        time_values = list(dataset.variables['time'][:])
-        try:
-            desired_time_index = time_values.index(desired_time)
-        except ValueError:
-            msg = "Time %s not found in %s" % (desired_time, 
-                                               time_values)
-            instruction_report.log = msg
-            logger.error(msg)
-            return
-        instruction_report.what.append("time value %s at index %s" % (
-            desired_time, desired_time_index))
+    desired_time_index = _desired_time_index(instruction, instruction_report, dataset)
 
     # Value lookup.
     values = dataset.variables[parameter_name]
@@ -431,26 +417,7 @@ def check_map_nflow(instruction, instruction_report, dataset):
         instruction_report.what.append("nFlowLink at index %s" % flow_item)
 
     # Time
-    desired_time = instruction['time']
-    if desired_time == 'SUM':
-        logger.debug("Summing all values")
-        instruction_report.what.append("sum of all times")
-        desired_time_index = slice(None)  # [:]
-    else:
-        desired_time = float(desired_time)
-        logger.debug("Looking up value for time %s", desired_time)
-        # TODO: less brute force, if possible.
-        time_values = list(dataset.variables['time'][:])
-        try:
-            desired_time_index = time_values.index(desired_time)
-        except ValueError:
-            msg = "Time %s not found in %s" % (desired_time, 
-                                               time_values)
-            instruction_report.log = msg
-            logger.error(msg)
-            return
-        instruction_report.what.append("time value %s at index %s" % (
-            desired_time, desired_time_index))
+    desired_time_index = _desired_time_index(instruction, instruction_report, dataset)
 
     # Value lookup.
     values = dataset.variables[parameter_name]
