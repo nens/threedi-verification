@@ -1,0 +1,456 @@
+{
+   <python_leak_malloc_alloc>
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   ...
+}
+{
+   <python_leak_malloc_trace>
+   Memcheck:Leak
+   fun:malloc
+   obj:/usr/bin/python2.7
+   fun:CTracer_trace
+   ...
+}
+{
+   <python_leak_malloc_fromstring>
+   Memcheck:Leak
+   fun:malloc
+   fun:PyString_FromStringAndSize
+   ...
+}
+{
+   <python_leak_malloc_resize>
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Resize
+   ...
+}
+{
+   <python_leak_malloc_setattr>
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GenericSetAttrWithDict
+   ...
+}
+{
+   <python_leak_malloc_import>
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:PyImport_ExecCodeModuleEx
+   ...
+}
+{
+   <python_leak_realloc_alloc>
+   Memcheck:Leak
+   fun:realloc
+   fun:_PyObject_GC_Malloc
+   ...
+}
+{
+   <python_leak_realloc_trace>
+   Memcheck:Leak
+   fun:realloc
+   obj:/usr/bin/python2.7
+   fun:CTracer_trace
+   ...
+}
+{
+   <python_leak_realloc_fromstring>
+   Memcheck:Leak
+   fun:realloc
+   fun:PyString_FromStringAndSize
+   ...
+}
+{
+   <python_leak_realloc_resize>
+   Memcheck:Leak
+   fun:realloc
+   fun:_PyObject_GC_Resize
+   ...
+}
+{
+   <python_leak_realloc_setattr>
+   Memcheck:Leak
+   fun:realloc
+   fun:_PyObject_GenericSetAttrWithDict
+   ...
+}
+{
+   <python_leak_realloc_import>
+   Memcheck:Leak
+   fun:realloc
+   ...
+   fun:PyImport_ExecCodeModuleEx
+   ...
+}
+{
+   <initposix>
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:initposix
+   ...
+}
+{
+   <python_cond_resize>
+   Memcheck:Cond
+   ...
+   fun:_PyObject_GC_Resize
+   ...
+}
+{
+   <python_value4_resize>
+   Memcheck:Value4
+   ...
+   fun:_PyObject_GC_Resize
+   ...
+}
+{
+   <python_value8_resize>
+   Memcheck:Value8
+   ...
+   fun:_PyObject_GC_Resize
+   ...
+}
+{
+   <python_addr4_resize>
+   Memcheck:Addr4
+   ...
+   fun:_PyObject_GC_Resize
+   ...
+}
+{
+   <python_addr8_resize>
+   Memcheck:Addr8
+   ...
+   fun:_PyObject_GC_Resize
+   ...
+}
+{
+   <python_cond_free>
+   Memcheck:Cond
+   ...
+   fun:PyObject_Free
+   ...
+}
+{
+   <python_value4_free>
+   Memcheck:Value4
+   ...
+   fun:PyObject_Free
+   ...
+}
+{
+   <python_value8_free>
+   Memcheck:Value8
+   ...
+   fun:PyObject_Free
+   ...
+}
+{
+   <python_addr4_free>
+   Memcheck:Addr4
+   ...
+   fun:PyObject_Free
+   ...
+}
+{
+   <python_addr8_free>
+   Memcheck:Addr8
+   ...
+   fun:PyObject_Free
+   ...
+}
+{
+   <python_cond_realloc>
+   Memcheck:Cond
+   ...
+   fun:PyObject_Realloc
+   ...
+}
+{
+   <python_value4_realloc>
+   Memcheck:Value4
+   ...
+   fun:PyObject_Realloc
+   ...
+}
+{
+   <python_value8_realloc>
+   Memcheck:Value8
+   ...
+   fun:PyObject_Realloc
+   ...
+}
+{
+   <python_addr4_realloc>
+   Memcheck:Addr4
+   ...
+   fun:PyObject_Realloc
+   ...
+}
+{
+   <python_addr8_realloc>
+   Memcheck:Addr8
+   ...
+   fun:PyObject_Realloc
+   ...
+}
+{
+   <python_cond_stringresize>
+   Memcheck:Cond
+   ...
+   fun:_PyString_Resize
+   ...
+}
+{
+   <python_value4_stringresize>
+   Memcheck:Value4
+   ...
+   fun:_PyString_Resize
+   ...
+}
+{
+   <python_value8_stringresize>
+   Memcheck:Value8
+   ...
+   fun:_PyString_Resize
+   ...
+}
+{
+   <python_addr4_stringresize>
+   Memcheck:Addr4
+   ...
+   fun:_PyString_Resize
+   ...
+}
+{
+   <python_addr8_stringresize>
+   Memcheck:Addr8
+   ...
+   fun:_PyString_Resize
+   ...
+}
+{
+   <python_cond_python27>
+   Memcheck:Cond
+   ...
+   obj:/usr/bin/python.2.7
+   ...
+}
+{
+   <python_value4_python27>
+   Memcheck:Value4
+   ...
+   obj:/usr/bin/python.2.7
+   ...
+}
+{
+   <python_value8_python27>
+   Memcheck:Value8
+   ...
+   obj:/usr/bin/python.2.7
+   ...
+}
+{
+   <python_addr4_python27>
+   Memcheck:Addr4
+   ...
+   obj:/usr/bin/python.2.7
+   ...
+}
+{
+   <python_addr8_python27>
+   Memcheck:Addr8
+   ...
+   obj:/usr/bin/python.2.7
+   ...
+}
+{
+   <python_cond_addchild>
+   Memcheck:Cond
+   ...
+   fun:PyNode_AddChild
+   ...
+}
+{
+   <python_value4_addchild>
+   Memcheck:Value4
+   ...
+   fun:PyNode_AddChild
+   ...
+}
+{
+   <python_value8_addchild>
+   Memcheck:Value8
+   ...
+   fun:PyNode_AddChild
+   ...
+}
+{
+   <python_addr4_addchild>
+   Memcheck:Addr4
+   ...
+   fun:PyNode_AddChild
+   ...
+}
+{
+   <python_addr8_addchild>
+   Memcheck:Addr8
+   ...
+   fun:PyNode_AddChild
+   ...
+}
+{
+   <python_cond_compile>
+   Memcheck:Cond
+   ...
+   fun:PyAST_Compile
+   ...
+}
+{
+   <python_value4_compile>
+   Memcheck:Value4
+   ...
+   fun:PyAST_Compile
+   ...
+}
+{
+   <python_value8_compile>
+   Memcheck:Value8
+   ...
+   fun:PyAST_Compile
+   ...
+}
+{
+   <python_addr4_compile>
+   Memcheck:Addr4
+   ...
+   fun:PyAST_Compile
+   ...
+}
+{
+   <python_addr8_compile>
+   Memcheck:Addr8
+   ...
+   fun:PyAST_Compile
+   ...
+}
+{
+   <python_cond_python27x10>
+   Memcheck:Cond
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+}
+{
+   <python_value4_python27x10>
+   Memcheck:Value4
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+}
+{
+   <python_value8_python27x10>
+   Memcheck:Value8
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+}
+{
+   <python_addr4_python27x10>
+   Memcheck:Addr4
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+}
+{
+   <python_addr8_python27x10>
+   Memcheck:Addr8
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+   obj:/usr/bin/python2.7
+}
+{
+   <python_cond_decodeutf8stateful>
+   Memcheck:Cond
+   ...
+   fun:PyUnicodeUCS4_DecodeUTF8Stateful
+   ...
+}
+{
+   <python_value4_decodeutf8stateful>
+   Memcheck:Value4
+   ...
+   fun:PyUnicodeUCS4_DecodeUTF8Stateful
+   ...
+}
+{
+   <python_value8_decodeutf8stateful>
+   Memcheck:Value8
+   ...
+   fun:PyUnicodeUCS4_DecodeUTF8Stateful
+   ...
+}
+{
+   <python_addr4_decodeutf8stateful>
+   Memcheck:Addr4
+   ...
+   fun:PyUnicodeUCS4_DecodeUTF8Stateful
+   ...
+}
+{
+   <python_addr8_decodeutf8stateful>
+   Memcheck:Addr8
+   ...
+   fun:PyUnicodeUCS4_DecodeUTF8Stateful
+   ...
+}
