@@ -24,8 +24,9 @@ logger = logging.getLogger(__name__)
 
 OUTDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 
                                       '..', 'var', 'html'))
+ARCHIVEDIR = os.path.join(OUTDIR, 'archive')
 TIMESTAMPED_OUTDIR = os.path.join(
-    OUTDIR, datetime.datetime.now().strftime('%Y-%m-%d_%H%M'))
+    ARCHIVEDIR, datetime.datetime.now().strftime('%Y-%m-%d_%H%M'))
 CRASHED = 'Calculation core crashes'
 SOME_ERROR = 'Model loading problems'
 LOADED = 'Loaded fine'
@@ -124,17 +125,23 @@ class Report(object):
 
     def write_template(self, template_name, outfile=None, title=None, 
                        context=None):
+        if context is None:
+            context = {}
         if not os.path.exists(TIMESTAMPED_OUTDIR):
             os.mkdir(TIMESTAMPED_OUTDIR)
         if outfile is None:
             outfile = template_name
         outfile1 = os.path.join(OUTDIR, outfile)
+        outfile2 = os.path.join(TIMESTAMPED_OUTDIR, outfile)
         template = jinja_env.get_template(template_name)
         open(outfile1, 'w').write(template.render(view=self, 
                                                   title=title, 
                                                   context=context))
-        outfile2 = os.path.join(TIMESTAMPED_OUTDIR, outfile)
-        shutil.copy(outfile1, outfile2)
+        static = '../../'
+        open(outfile2, 'w').write(template.render(view=self, 
+                                                  title=title, 
+                                                  context=context,
+                                                  static=static))
         logger.debug("Wrote %s and %s", outfile1, outfile2)
 
     def _propagate_ids(self):
@@ -525,6 +532,22 @@ def mdu_filepaths(basedir):
             yield os.path.join(dirpath, mdu_filename)
 
 
+def create_archive_index():
+    """Write an index.html file for the archive/* directories."""
+    archive_dirs = [filename for filename in os.listdir(ARCHIVEDIR)
+                    if os.path.isdir(os.path.join(ARCHIVEDIR, filename))]
+    archive_dirs.sort()
+    archive_dirs.reverse()
+    template = jinja_env.get_template('archive.html')
+    outfile = os.path.join(ARCHIVEDIR, 'index.html')
+    view = {'archive_dirs': archive_dirs}
+    static = '../'
+    open(outfile, 'w').write(template.render(
+        view=view, 
+        title='Archive of previous tests', 
+        static=static))
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Run verification tests on the "unit test" models.')
@@ -537,4 +560,5 @@ def main():
     for mdu_filepath in mdu_filepaths(args.directory):
         run_simulation(mdu_filepath)
     report.export_reports()
+    create_archive_index()
     
