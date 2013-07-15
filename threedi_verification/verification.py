@@ -7,9 +7,11 @@ from __future__ import print_function
 from collections import defaultdict
 import argparse
 import csv
+import datetime
 import json
 import logging
 import os
+import shutil
 
 from netCDF4 import Dataset
 import numpy as np
@@ -22,6 +24,8 @@ logger = logging.getLogger(__name__)
 
 OUTDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 
                                       '..', 'var', 'html'))
+TIMESTAMPED_OUTDIR = os.path.join(
+    OUTDIR, datetime.datetime.now().strftime('%Y-%m-%d_%H%M'))
 CRASHED = 'Calculation core crashes'
 SOME_ERROR = 'Model loading problems'
 LOADED = 'Loaded fine'
@@ -120,14 +124,18 @@ class Report(object):
 
     def write_template(self, template_name, outfile=None, title=None, 
                        context=None):
+        if not os.path.exists(TIMESTAMPED_OUTDIR):
+            os.mkdir(TIMESTAMPED_OUTDIR)
         if outfile is None:
             outfile = template_name
-        outfile = os.path.join(OUTDIR, outfile)
+        outfile1 = os.path.join(OUTDIR, outfile)
         template = jinja_env.get_template(template_name)
-        open(outfile, 'w').write(template.render(view=self, 
-                                                 title=title, 
-                                                 context=context))
-        logger.debug("Wrote %s", outfile)
+        open(outfile1, 'w').write(template.render(view=self, 
+                                                  title=title, 
+                                                  context=context))
+        outfile2 = os.path.join(TIMESTAMPED_OUTDIR, outfile)
+        shutil.copy(outfile1, outfile2)
+        logger.debug("Wrote %s and %s", outfile1, outfile2)
 
     def _propagate_ids(self):
         for mdu_id in self.mdu_reports:
