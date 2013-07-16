@@ -514,7 +514,12 @@ def model_parameters(mdu_filepath):
     config = ConfigParser.ConfigParser()
     config.readfp(open(mdu_filepath))
     for section, parameter in MODEL_PARAMETERS:
-        value = config.get(section, parameter)
+        try:
+            value = config.get(section, parameter)
+        except ConfigParser.NoSectionError:
+            value = "(Section %s not found)" % section
+        except ConfigParser.NoOptionError:
+            value = "(parameter not found)"
         value = value.split('#')[0]
         yield parameter, value
 
