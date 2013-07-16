@@ -58,56 +58,39 @@
     <thead>
       <tr>
         <th>Testcase</th>
-        <th>Parameter</th>
-        <th>Expected</th>
-        <th>Found</th>
+        <th>Note</th>
       </tr>
     </thead>
     <tbody>
       {% for mdu in view.loaded_mdus %}
-        {% for instruction in mdu.instructions %}
-          <tr>
-            {% if loop.first %}
-              <td rowspan="{{ mdu.num_instructions }}">
-                <a href="{{ mdu.details_filename }}">
-                  {{ mdu.short_title }}
-                </a>
-              </td>
+        <tr>
+          <td>
+            {% if mdu.overall_status == 'WRONG' %}
+              <span class="wrong">
+                <i class="icon-remove"></i>
+                {{ mdu.short_title }}
+              </span>
+            {% elif mdu.overall_status == 'PARTIAL' %}
+              <span class="partial">
+                <i class="icon-remove"></i>
+                {{ mdu.short_title }}
+              </span>
+            {% else %}
+              <span class="good">
+                <i class="icon-ok"></i>
+                {{ mdu.short_title }}
+              </span>
             {% endif %}
-            <td>
-              {{ instruction.parameter }}
-            </td>
-            <td>
-              {% if instruction.invalid_desired_value %}
-                <span class="wrong">
-                  <i class="icon-remove"></i>
-                  {{ instruction.invalid_desired_value }}
-                </span>
-              {% else %}
-                {{ instruction.desired }}
-              {% endif %}
-            </td>
-            <td>
-              {% if instruction.equal %}
-                <span class="good">
-                  <i class="icon-ok"></i>
-                  {{ instruction.found }}
-                </span>
-              {% elif instruction.log %}
-                <span class="wrong has-tooltip"
-                      title="{{ instruction.shortlog|escape }}">
-                  <i class="icon-remove"></i>
-                  An error occurred
-                </span>
-              {% else %}
-                <span class="wrong">
-                  <i class="icon-remove"></i>
-                  {{ instruction.found }}
-                </span>
-              {% endif %}
-            </td>
-          </tr>
-        {% endfor %}
+          </td>
+
+          <td>
+            {% if context.index_lines %}
+              {% for line in context.index_lines %}
+                <div>{{ line }}</div>
+              {% endfor %}
+            {% endif %}
+          </td>
+        </tr>
       {% endfor %}
     </tbody>
   </table>

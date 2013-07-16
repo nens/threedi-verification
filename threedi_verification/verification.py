@@ -113,9 +113,19 @@ class MduReport(object):
         return sorted(self.instruction_reports.values())
 
     @property
-    def num_instructions(self):
+    def overall_status(self):
         """Return number of instructions; used for table rowspan."""
-        return len(self.instructions)
+        correct_results = [instruction for instruction in self.instructions
+                           if not instruction.invalid_desired_value]
+        wrong_results = [instruction for instruction in self.instructions
+                         if instruction.invalid_desired_value]
+        # Hardcoded values
+        if len(wrong_results) == 0:
+            return 'GOOD'
+        if len(correct_results) > len(wrong_results):
+            return 'PARTIALLY'
+        return 'WRONG'
+
 
 
 class Report(object):

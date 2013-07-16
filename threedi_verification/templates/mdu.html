@@ -9,11 +9,11 @@
         <i class="icon-remove wrong"></i>
       {% endif %}
       {{ context.short_title }}
-      <small>{{ context.title }}</small>
     </h1>
   </div>
     
   {% if context.index_lines %}
+    <h2>Explanation of the test</h2>
     {% for line in context.index_lines %}
       <div>{{ line }}</div>
      {% endfor %}
