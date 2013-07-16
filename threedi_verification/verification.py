@@ -38,6 +38,7 @@ MODEL_PARAMETERS = (
     ('grid', 'GridSpace'),
     ('grid', 'kmax'),
     ('grid', 'BathDelta'),
+    ('time', 'Dt'),
     ('Ground Water', 'NumLayers'),
     ('numerics', 'Teta'),
     ('numerics', 'Advection'),
