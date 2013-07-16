@@ -68,24 +68,24 @@
             {% if mdu.overall_status == 'WRONG' %}
               <span class="wrong">
                 <i class="icon-remove"></i>
-                {{ mdu.short_title }}
               </span>
             {% elif mdu.overall_status == 'PARTIAL' %}
               <span class="partial">
                 <i class="icon-remove"></i>
-                {{ mdu.short_title }}
               </span>
             {% else %}
               <span class="good">
                 <i class="icon-ok"></i>
-                {{ mdu.short_title }}
               </span>
             {% endif %}
+            <a href="{{ mdu.details_filename }}">
+              {{ mdu.short_title }}
+            </a>
           </td>
 
           <td>
-            {% if context.index_lines %}
-              {% for line in context.index_lines %}
+            {% if mdu.index_lines %}
+              {% for line in mdu.index_lines %}
                 <div>{{ line }}</div>
               {% endfor %}
             {% endif %}

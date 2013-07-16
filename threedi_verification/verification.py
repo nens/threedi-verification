@@ -5,6 +5,7 @@ models and to create reports about them.
 """
 from __future__ import print_function
 from collections import defaultdict
+import ConfigParser
 import argparse
 import csv
 import datetime
@@ -32,6 +33,10 @@ SOME_ERROR = 'Model loading problems'
 LOADED = 'Loaded fine'
 
 INVALID_DESIRED_VALUE = 1234567890  # Hardcoded in the template, too.
+MODEL_PARAMETERS = (
+    ('geometry', 'BathymetryFile'),
+    ('grid', 'GridSpace'),
+)
 
 
 class InstructionReport(object):
@@ -70,6 +75,7 @@ class MduReport(object):
         self.status = None
         self.index_lines = []
         self.csv_contents = []
+        self.model_parameters = []
 
     def __cmp__(self, other):
         return cmp(self.id, other.id)
@@ -116,16 +122,15 @@ class MduReport(object):
     def overall_status(self):
         """Return number of instructions; used for table rowspan."""
         correct_results = [instruction for instruction in self.instructions
-                           if not instruction.invalid_desired_value]
+                           if instruction.equal]
         wrong_results = [instruction for instruction in self.instructions
-                         if instruction.invalid_desired_value]
+                         if not instruction.equal]
         # Hardcoded values
         if len(wrong_results) == 0:
             return 'GOOD'
         if len(correct_results) > len(wrong_results):
             return 'PARTIALLY'
         return 'WRONG'
-
 
 
 class Report(object):
@@ -499,6 +504,15 @@ def check_csv(csv_filename, mdu_report=None):
                     check_map(instruction, instruction_report, dataset)
 
 
+def model_parameters(mdu_filepath):
+    """Return parameter/value pairs from the mdu."""
+    config = ConfigParser.ConfigParser()
+    config.readfp(open(mdu_filepath))
+    for section, parameter in MODEL_PARAMETERS:
+        value = config.get(section, parameter)
+        value = value.split('#')[0]
+        yield parameter, value
+
 
 def run_simulation(mdu_filepath):
     mdu_report = report.mdu_reports[mdu_filepath]
@@ -526,6 +540,7 @@ def run_simulation(mdu_filepath):
         mdu_report.status = LOADED
         logger.info("Successfully loaded: %s", mdu_filepath)
         mdu_report.successfully_loaded_log = output 
+        mdu_report.model_parameters = list(model_parameters(mdu_filepath))
         csv_filenames = [f for f in os.listdir('.') if f.endswith('.csv')]
         for csv_filename in csv_filenames:
             logger.info("Reading instructions from %s", csv_filename)

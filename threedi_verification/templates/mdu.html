@@ -91,6 +91,14 @@
 
   {% endif %}
 
+  <h2>Model parameters</h2>
+  <dl>
+    {% for parameter, value in context.model_parameters %}
+      <dt>{{ parameter }}</dt>
+      <dd>{{ value }}</dd>
+    {% endfor %}
+  </dl>
+
   {% if context.csv_contents %}
     <h2>Test instructions <small>for debug purposes</small></h2>
     {% for csv_contents in context.csv_contents %}
