@@ -6,6 +6,16 @@
     color: #B94A48;
 }
 
+.partial {
+    color: #FBB450;
+}
+
 .has-tooltip {
     border-bottom: 1px dotted;
 }
+
+
+.first-index-column {
+    width: 10em;
+}
+
