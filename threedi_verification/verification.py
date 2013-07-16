@@ -36,6 +36,11 @@ INVALID_DESIRED_VALUE = 1234567890  # Hardcoded in the template, too.
 MODEL_PARAMETERS = (
     ('geometry', 'BathymetryFile'),
     ('grid', 'GridSpace'),
+    ('grid', 'kmax'),
+    ('grid', 'BathDelta'),
+    ('Ground Water', 'NumLayers'),
+    ('numerics', 'Teta'),
+    ('numerics', 'Advection'),
 )
 
 
