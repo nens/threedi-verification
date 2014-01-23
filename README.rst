@@ -42,3 +42,15 @@ just specify a directory lower down in the hierarchy:
 This generates some html files into the ``var/html/`` directory.
 The html output is also generated on jenkins:
 http://jenkins.3di.lizard.net/testresults/ .
+
+
+3Di subgrid library location
+----------------------------
+
+Currently ``/opt/3di/bin/subgridf90`` is executed directly, so normally that'd
+be the most recently compiled and installed version. At least, on the jenkins
+machine that's the case: if the compilation of the "subgridf90" task succeeds,
+a "make install" is automatically done.
+
+When running locally and using the debian packages, you'll need to symlink
+``/opt/3di/`` to the latest ``/opt/3di/*`` version. Or compile it by hand.
