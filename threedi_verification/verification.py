@@ -239,11 +239,24 @@ def _desired_time_index(instruction, instruction_report, dataset):
         try:
             desired_time_index = time_values.index(desired_time)
         except ValueError:
-            msg = "Time %s not found in %s" % (desired_time,
-                                               time_values)
-            instruction_report.log = msg
-            logger.error(msg)
-            return
+            # Re-try because we often see a time '1800.0' that doesn't match a
+            # time '1800.0517' or something like that. Can't hurt to do a bit
+            # of rounding.
+            desired_rounded_time = round(desired_time)
+            rounded_time_values = [round(value) for value in time_values]
+            try:
+                desired_time_index = rounded_time_values.index(
+                    desired_rounded_time)
+                logger.warn("Didn't find proper time %s, but after rounding "
+                            "we did find %s",
+                            desired_time,
+                            time_values[desired_time_index])
+            except ValueError:
+                msg = "Time %s not found in %s" % (desired_time,
+                                                   time_values)
+                instruction_report.log = msg
+                logger.error(msg)
+                return
         instruction_report.what.append("time value %s at index %s" % (
             desired_time, desired_time_index))
     return desired_time_index
