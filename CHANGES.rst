@@ -5,7 +5,10 @@ Changelog of threedi-verification
 0.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- We're slightly less strict in time checking. We only warn in the logfile,
+  too, btw if we encounter an error:
+
+  "Didn't find proper time 18000.0, but after rounding we did find 18000.0517827"
 
 
 0.1 (2013-07-01)
