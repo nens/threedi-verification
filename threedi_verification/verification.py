@@ -13,13 +13,14 @@ import json
 import logging
 import os
 
+from jinja2 import Environment, PackageLoader
 from netCDF4 import Dataset
 import numpy as np
-from jinja2 import Environment, PackageLoader
 
 from threedi_verification.utils import system
 
-jinja_env = Environment(loader=PackageLoader('threedi_verification', 'templates'))
+jinja_env = Environment(loader=PackageLoader('threedi_verification',
+                                             'templates'))
 logger = logging.getLogger(__name__)
 
 OUTDIR = os.path.abspath(os.path.join(os.path.dirname(__file__),
@@ -248,7 +249,8 @@ def _desired_time_index(instruction, instruction_report, dataset):
     return desired_time_index
 
 
-def _value_lookup(dataset, parameter_name, desired_time_index, location_index, instruction_report):
+def _value_lookup(dataset, parameter_name, desired_time_index, location_index,
+                  instruction_report):
     values = dataset.variables[parameter_name]
     logger.debug("Shape before looking up times/location: %r", values.shape)
     try:
@@ -326,12 +328,14 @@ def check_his(instruction, instruction_report, dataset):
     logger.debug(msg)
 
     # Time
-    desired_time_index = _desired_time_index(instruction, instruction_report, dataset)
+    desired_time_index = _desired_time_index(instruction, instruction_report,
+                                             dataset)
     if desired_time_index is None:
         return
 
     # Value lookup.
-    found = _value_lookup(dataset, parameter_name, desired_time_index, location_index, instruction_report)
+    found = _value_lookup(dataset, parameter_name, desired_time_index,
+                          location_index, instruction_report)
     if found is None:
         return
 
@@ -400,7 +404,8 @@ def check_map(instruction, instruction_report, dataset):
     )
     # quad is a [False, False, True, False] mask.
     try:
-        location_index = [index for index, value in enumerate(quad) if value][0]
+        location_index = [index for index, value in enumerate(quad)
+                          if value][0]
         # ^^^ TODO: Is this right?
     except IndexError:
         msg = "x=%s, y=%s not found in grid" % (x, y)
@@ -411,12 +416,15 @@ def check_map(instruction, instruction_report, dataset):
         location_index, x, y))
 
     # Time
-    desired_time_index = _desired_time_index(instruction, instruction_report, dataset)
+    desired_time_index = _desired_time_index(instruction,
+                                             instruction_report,
+                                             dataset)
     if desired_time_index is None:
         return
 
     # Value lookup.
-    found = _value_lookup(dataset, parameter_name, desired_time_index, location_index, instruction_report)
+    found = _value_lookup(dataset, parameter_name, desired_time_index,
+                          location_index, instruction_report)
     if found is None:
         return
 
@@ -468,15 +476,19 @@ def check_map_nflow(instruction, instruction_report, dataset):
         instruction_report.what.append("sum of all flow items")
     else:
         location_index = int(location_index)
-        instruction_report.what.append("nFlowLink at index %s" % location_index)
+        instruction_report.what.append(
+            "nFlowLink at index %s" % location_index)
 
     # Time
-    desired_time_index = _desired_time_index(instruction, instruction_report, dataset)
+    desired_time_index = _desired_time_index(instruction,
+                                             instruction_report,
+                                             dataset)
     if desired_time_index is None:
         return
 
     # Value lookup.
-    found = _value_lookup(dataset, parameter_name, desired_time_index, location_index, instruction_report)
+    found = _value_lookup(dataset, parameter_name, desired_time_index,
+                          location_index, instruction_report)
     if found is None:
         return
 
@@ -502,8 +514,7 @@ def check_csv(csv_filename, mdu_report=None):
             if 'his' in csv_filename:
                 check_his(instruction, instruction_report, dataset)
             else:
-                if ('nFlowLink' in instruction or
-                    'nFlowElem' in instruction):
+                if ('nFlowLink' in instruction or 'nFlowElem' in instruction):
                     check_map_nflow(instruction, instruction_report, dataset)
                 else:
                     check_map(instruction, instruction_report, dataset)

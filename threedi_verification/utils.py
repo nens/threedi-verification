@@ -4,6 +4,7 @@ import sys
 
 MUST_CLOSE_FDS = not sys.platform.startswith('win')
 
+
 def system(command):
     # Copy/pasted from zc.buildout.
     p = subprocess.Popen(command,
