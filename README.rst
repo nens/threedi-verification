@@ -39,6 +39,6 @@ just specify a directory lower down in the hierarchy:
 
     $ bin/verify testbank/2_03
 
-This generates some html files into the current directory. The html
-output is also generated on jenkins:
+This generates some html files into the ``var/html/`` directory.
+The html output is also generated on jenkins:
 http://jenkins.3di.lizard.net/testresults/ .
