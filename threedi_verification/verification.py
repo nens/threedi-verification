@@ -1,5 +1,5 @@
 """
-This module provides functions for running verification checks on small 
+This module provides functions for running verification checks on small
 models and to create reports about them.
 
 """
@@ -12,7 +12,6 @@ import datetime
 import json
 import logging
 import os
-import shutil
 
 from netCDF4 import Dataset
 import numpy as np
@@ -23,7 +22,7 @@ from threedi_verification.utils import system
 jinja_env = Environment(loader=PackageLoader('threedi_verification', 'templates'))
 logger = logging.getLogger(__name__)
 
-OUTDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 
+OUTDIR = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                       '..', 'var', 'html'))
 ARCHIVEDIR = os.path.join(OUTDIR, 'archive')
 TIMESTAMPED_OUTDIR = os.path.join(
@@ -144,7 +143,7 @@ class Report(object):
     def __init__(self):
         self.mdu_reports = defaultdict(MduReport)
 
-    def write_template(self, template_name, outfile=None, title=None, 
+    def write_template(self, template_name, outfile=None, title=None,
                        context=None):
         if context is None:
             context = {}
@@ -155,12 +154,12 @@ class Report(object):
         outfile1 = os.path.join(OUTDIR, outfile)
         outfile2 = os.path.join(TIMESTAMPED_OUTDIR, outfile)
         template = jinja_env.get_template(template_name)
-        open(outfile1, 'w').write(template.render(view=self, 
-                                                  title=title, 
+        open(outfile1, 'w').write(template.render(view=self,
+                                                  title=title,
                                                   context=context))
         static = '../../'
-        open(outfile2, 'w').write(template.render(view=self, 
-                                                  title=title, 
+        open(outfile2, 'w').write(template.render(view=self,
+                                                  title=title,
                                                   context=context,
                                                   static=static))
         logger.debug("Wrote %s and %s", outfile1, outfile2)
@@ -180,12 +179,12 @@ class Report(object):
 
     @property
     def problem_mdus(self):
-        return [mdu for mdu in self.mdus 
+        return [mdu for mdu in self.mdus
                 if mdu.status in [CRASHED, SOME_ERROR]]
 
     @property
     def loaded_mdus(self):
-        return [mdu for mdu in self.mdus 
+        return [mdu for mdu in self.mdus
                 if mdu.status not in [CRASHED, SOME_ERROR]]
 
     @property
@@ -220,7 +219,7 @@ class Report(object):
                                 outfile=mdu.details_filename,
                                 context=mdu)
 
-                    
+
 report = Report()
 
 
@@ -239,7 +238,7 @@ def _desired_time_index(instruction, instruction_report, dataset):
         try:
             desired_time_index = time_values.index(desired_time)
         except ValueError:
-            msg = "Time %s not found in %s" % (desired_time, 
+            msg = "Time %s not found in %s" % (desired_time,
                                                time_values)
             instruction_report.log = msg
             logger.error(msg)
@@ -253,7 +252,7 @@ def _value_lookup(dataset, parameter_name, desired_time_index, location_index, i
     values = dataset.variables[parameter_name]
     logger.debug("Shape before looking up times/location: %r", values.shape)
     try:
-        logger.debug("Looking up time %r and location %r", 
+        logger.debug("Looking up time %r and location %r",
                      desired_time_index, location_index)
         values = values[desired_time_index, location_index]
     except IndexError:
@@ -338,7 +337,7 @@ def check_his(instruction, instruction_report, dataset):
 
     instruction_report.found = found
     instruction_report.equal = (abs(desired - found) < 0.001)
-    logger.info("Found value %s for parameter %s; desired=%s", 
+    logger.info("Found value %s for parameter %s; desired=%s",
                 found,
                 parameter_name,
                 desired)
@@ -423,7 +422,7 @@ def check_map(instruction, instruction_report, dataset):
 
     instruction_report.found = found
     instruction_report.equal = (abs(desired - found) < 0.00001)
-    logger.info("Found value %s for parameter %s; desired=%s", 
+    logger.info("Found value %s for parameter %s; desired=%s",
                 found,
                 parameter_name,
                 desired)
@@ -475,7 +474,7 @@ def check_map_nflow(instruction, instruction_report, dataset):
     desired_time_index = _desired_time_index(instruction, instruction_report, dataset)
     if desired_time_index is None:
         return
-    
+
     # Value lookup.
     found = _value_lookup(dataset, parameter_name, desired_time_index, location_index, instruction_report)
     if found is None:
@@ -483,11 +482,11 @@ def check_map_nflow(instruction, instruction_report, dataset):
 
     instruction_report.found = found
     instruction_report.equal = (abs(desired - found) < 0.00001)
-    logger.info("Found value %s for parameter %s; desired=%s", 
+    logger.info("Found value %s for parameter %s; desired=%s",
                 found,
                 parameter_name,
                 desired)
-                        
+
 
 def check_csv(csv_filename, mdu_report=None):
     instructions = list(csv.DictReader(open(csv_filename), delimiter=';'))
@@ -538,7 +537,7 @@ def run_simulation(mdu_filepath):
     logger.debug("Running %s", cmd)
     exit_code, output = system(cmd)
     last_output = ''.join(output.split('\n')[-2:]).lower()
-    if exit_code or ('error' in last_output 
+    if exit_code or ('error' in last_output
                      and 'quitting' in last_output):
         logger.error("Loading failed: %s", mdu_filepath)
         mdu_report.loadable = False
@@ -550,7 +549,7 @@ def run_simulation(mdu_filepath):
     else:
         mdu_report.status = LOADED
         logger.info("Successfully loaded: %s", mdu_filepath)
-        mdu_report.successfully_loaded_log = output 
+        mdu_report.successfully_loaded_log = output
         mdu_report.model_parameters = list(model_parameters(mdu_filepath))
         csv_filenames = [f for f in os.listdir('.') if f.endswith('.csv')]
         for csv_filename in csv_filenames:
@@ -579,8 +578,8 @@ def create_archive_index():
     view = {'archive_dirs': archive_dirs}
     static = '../'
     open(outfile, 'w').write(template.render(
-        view=view, 
-        title='Archive of previous tests', 
+        view=view,
+        title='Archive of previous tests',
         static=static))
 
 
@@ -597,4 +596,3 @@ def main():
         run_simulation(mdu_filepath)
     report.export_reports()
     create_archive_index()
-    
