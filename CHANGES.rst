@@ -10,6 +10,9 @@ Changelog of threedi-verification
 
   "Didn't find proper time 18000.0, but after rounding we did find 18000.0517827"
 
+- Looking at 'margin' parameter in csv. Can be both absolute and relative
+  (indicated by a % sign).
+
 
 0.1 (2013-07-01)
 ----------------
