@@ -32,6 +32,8 @@ CRASHED = 'Calculation core crashes'
 SOME_ERROR = 'Model loading problems'
 LOADED = 'Loaded fine'
 
+EPSILON = 0.000001
+
 INVALID_DESIRED_VALUE = 1234567890  # Hardcoded in the template, too.
 MODEL_PARAMETERS = (
     ('geometry', 'BathymetryFile'),
@@ -52,6 +54,7 @@ class InstructionReport(object):
         self.id = None
         self.parameter = None
         self.desired = None
+        self.margin = None
         self.found = None
         self.equal = None
         self.title = None
@@ -68,6 +71,23 @@ class InstructionReport(object):
         if len(self.log) < 400:
             return self.log
         return self.log[:200] + ' ... ' + self.log[-200:]
+
+    @property
+    def epsilon(self):
+        """Return allowed margin (positive)."""
+        if self.margin is None:
+            return EPSILON
+        relative = '%' in self.margin
+        margin = self.margin.replace('%', '')
+        try:
+            margin = float(margin)
+        except ValueError:
+            logger.exception("Wrong 'margin' value: %s", margin)
+            return EPSILON
+        if relative:
+            return abs(self.found) / 100 * margin
+        else:
+            return abs(margin)
 
 
 class MduReport(object):
@@ -321,6 +341,11 @@ def check_his(instruction, instruction_report, dataset):
         desired = INVALID_DESIRED_VALUE
     instruction_report.desired = desired
 
+    # Margin
+    if instruction.get('margin'):
+        margin = instruction['margin']
+        instruction_report.margin = margin
+
     # Observation point
     station_name = instruction['obs_name']
     station_names = list(
@@ -353,7 +378,8 @@ def check_his(instruction, instruction_report, dataset):
         return
 
     instruction_report.found = found
-    instruction_report.equal = (abs(desired - found) < 0.001)
+    instruction_report.equal = (
+        abs(desired - found) < instruction_report.epsilon)
     logger.info("Found value %s for parameter %s; desired=%s",
                 found,
                 parameter_name,
@@ -386,6 +412,11 @@ def check_map(instruction, instruction_report, dataset):
         logger.error(msg)
         desired = INVALID_DESIRED_VALUE
     instruction_report.desired = desired
+
+    # Margin
+    if instruction.get('margin'):
+        margin = instruction['margin']
+        instruction_report.margin = margin
 
     # x/y lookup
     if not ('x' in instruction and 'y' in instruction):
@@ -442,7 +473,8 @@ def check_map(instruction, instruction_report, dataset):
         return
 
     instruction_report.found = found
-    instruction_report.equal = (abs(desired - found) < 0.00001)
+    instruction_report.equal = (
+        abs(desired - found) < instruction_report.epsilon)
     logger.info("Found value %s for parameter %s; desired=%s",
                 found,
                 parameter_name,
@@ -476,6 +508,11 @@ def check_map_nflow(instruction, instruction_report, dataset):
         desired = INVALID_DESIRED_VALUE
     instruction_report.desired = desired
 
+    # Margin
+    if instruction.get('margin'):
+        margin = instruction['margin']
+        instruction_report.margin = margin
+
     # nflow
     if 'nFlowElem' in instruction:
         location_index = instruction['nFlowElem']
@@ -506,7 +543,8 @@ def check_map_nflow(instruction, instruction_report, dataset):
         return
 
     instruction_report.found = found
-    instruction_report.equal = (abs(desired - found) < 0.00001)
+    instruction_report.equal = (
+        abs(desired - found) < instruction_report.epsilon)
     logger.info("Found value %s for parameter %s; desired=%s",
                 found,
                 parameter_name,
