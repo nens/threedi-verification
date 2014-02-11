@@ -1,3 +1,7 @@
+# (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.txt.
+# -*- coding: utf-8 -*-
+from __future__ import print_function, unicode_literals
+from __future__ import absolute_import, division
 import logging
 
 from django.views.generic.base import TemplateView
