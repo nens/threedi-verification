@@ -10,6 +10,6 @@ admin.autodiscover()
 urlpatterns = patterns(
     '',
     url(r'^$',
-        views.home,
+        views.HomeView.as_view(),
         name='threedi_verification.home'),
     )
