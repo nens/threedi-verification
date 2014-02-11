@@ -1,0 +1,10 @@
+{% extends "threedi_verification/base.html" %}
+{% load staticfiles %}
+
+{% block main-column %}
+  <ul>
+    {% for test_case in view.test_cases %}
+      <li>{{ test_case }}</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

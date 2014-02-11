@@ -17,10 +17,14 @@ class TestCase(models.Model):
         verbose_name=_("filename"),
         unique=True,
         help_text=_(
-            "CSV filename, including path, inside the 'testbank' directory"),
+            "MDU filename, including path, inside the 'testbank' directory"),
         max_length=255)
     last_modified = models.DateTimeField(
         verbose_name=_("last modified"))
+    info = models.TextField(
+        verbose_name=_("information"),
+        blank=True,
+        null=True)
 
     class Meta:
         verbose_name = _("test case")
@@ -50,11 +54,13 @@ class TestRun(models.Model):
 
     test_case = models.ForeignKey(
         TestCase,
-        verbose_name=_("test case"))
+        verbose_name=_("test case"),
+        related_name='test_runs')
     library_version = models.ForeignKey(
         LibraryVersion,
         verbose_name=_("library version"))
     run_started = models.DateTimeField(
+        auto_now_add=True,
         verbose_name=_("start of test run"))
     duration = models.FloatField(
         blank=True,

@@ -1,0 +1,10 @@
+{% extends "threedi_verification/base.html" %}
+{% load staticfiles %}
+
+{% block main-column %}
+  <ul>
+    {% for library_version in view.library_versions %}
+      <li>{{ library_version }}</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

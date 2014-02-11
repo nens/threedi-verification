@@ -12,4 +12,10 @@ urlpatterns = patterns(
     url(r'^$',
         views.HomeView.as_view(),
         name='threedi_verification.home'),
+    url(r'^library_versions/$',
+        views.LibraryVersionsView.as_view(),
+        name='threedi_verification.library_versions'),
+    url(r'^test_cases/$',
+        views.TestCasesView.as_view(),
+        name='threedi_verification.test_cases'),
     )
