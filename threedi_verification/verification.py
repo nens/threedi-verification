@@ -346,44 +346,85 @@ def check_his(instruction, instruction_report, dataset):
         margin = instruction['margin']
         instruction_report.margin = margin
 
-    # Observation point
-    station_name = instruction['obs_name']
-    station_names = list(
-        [''.join(name.data)
-         for name in dataset.variables['station_name'][:]])
-    try:
-        location_index = station_names.index(station_name)
-    except ValueError:
-        msg = "Station name %s not found in %r." % (
-            station_name, station_names)
-        instruction_report.log = msg
-        logger.error(msg)
-        return
+    if 'obs_name' in instruction:
+        # Observation point
+        station_name = instruction['obs_name']
+        station_names = list(
+            [''.join(name.data)
+             for name in dataset.variables['station_name'][:]])
+        try:
+            location_index = station_names.index(station_name)
+        except ValueError:
+            msg = "Station name %s not found in %r." % (
+                station_name, station_names)
+            instruction_report.log = msg
+            logger.error(msg)
+            return
 
-    msg = "Using station name %s at index %s." % (
-        station_name, location_index)
-    instruction_report.what.append(msg)
-    logger.debug(msg)
+        msg = "Using station name %s at index %s." % (
+            station_name, location_index)
+        instruction_report.what.append(msg)
+        logger.debug(msg)
 
-    # Time
-    desired_time_index = _desired_time_index(instruction, instruction_report,
-                                             dataset)
-    if desired_time_index is None:
-        return
+        # Time
+        desired_time_index = _desired_time_index(instruction, instruction_report,
+                                                 dataset)
+        if desired_time_index is None:
+            return
 
-    # Value lookup.
-    found = _value_lookup(dataset, parameter_name, desired_time_index,
-                          location_index, instruction_report)
-    if found is None:
-        return
+        # Value lookup.
+        found = _value_lookup(dataset, parameter_name, desired_time_index,
+                              location_index, instruction_report)
+        if found is None:
+            return
 
-    instruction_report.found = found
-    instruction_report.equal = (
-        abs(desired - found) < instruction_report.epsilon)
-    logger.info("Found value %s for parameter %s; desired=%s",
-                found,
-                parameter_name,
-                desired)
+        instruction_report.found = found
+        instruction_report.equal = (
+            abs(desired - found) < instruction_report.epsilon)
+        logger.info("Found value %s for parameter %s; desired=%s",
+                    found,
+                    parameter_name,
+                    desired)
+    else:
+        # cross section
+        assert 'cross_section_name' in instruction
+        cross_section_name = instruction['cross_section_name']
+        cross_section_names = list(
+            [''.join(name.data)
+             for name in dataset.variables['cross_section_name'][:]])
+        try:
+            location_index = cross_section_names.index(cross_section_name)
+        except ValueError:
+            msg = "Cross section name %s not found in %r." % (
+                cross_section_name, cross_section_names)
+            instruction_report.log = msg
+            logger.error(msg)
+            return
+
+        msg = "Using cross section name %s at index %s." % (
+            cross_section_name, location_index)
+        instruction_report.what.append(msg)
+        logger.debug(msg)
+
+        # Time
+        desired_time_index = _desired_time_index(instruction, instruction_report,
+                                                 dataset)
+        if desired_time_index is None:
+            return
+
+        # Value lookup.
+        found = _value_lookup(dataset, parameter_name, desired_time_index,
+                              location_index, instruction_report)
+        if found is None:
+            return
+
+        instruction_report.found = found
+        instruction_report.equal = (
+            abs(desired - found) < instruction_report.epsilon)
+        logger.info("Found value %s for parameter %s; desired=%s",
+                    found,
+                    parameter_name,
+                    desired)
 
 
 def check_map(instruction, instruction_report, dataset):
