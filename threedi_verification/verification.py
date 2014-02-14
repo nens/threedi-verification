@@ -349,6 +349,15 @@ def check_his(instruction, instruction_report, dataset):
     if 'obs_name' in instruction:
         # Observation point
         station_name = instruction['obs_name']
+
+        # Special case, error that occurs in practice
+        if not 'station_name' in dataset.variables:
+            msg = ("Variable 'station_name' not found in the netcdf. " +
+                   "Wrong kind of _his.csv check")
+            instruction_report.log = msg
+            logger.error(msg)
+            return
+
         station_names = list(
             [''.join(name.data)
              for name in dataset.variables['station_name'][:]])
