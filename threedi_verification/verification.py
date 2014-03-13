@@ -643,7 +643,7 @@ def run_simulation(mdu_filepath):
     if 'index.txt' in os.listdir('.'):
         mdu_report.index_lines = open('index.txt').readlines()
     logger.debug("Loading %s...", mdu_filepath)
-    cmd = '/opt/3di/bin/subgridf90 %s --autostartstop' % os.path.basename(
+    cmd = '/opt/3di/bin/subgridf90 %s --autostartstop --nodisplay' % os.path.basename(
         mdu_filepath)
     # ^^^ TODO: hardcoded.
     logger.debug("Running %s", cmd)
