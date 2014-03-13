@@ -241,9 +241,6 @@ class Report(object):
                                 context=mdu)
 
 
-report = Report()
-
-
 def _desired_time_index(instruction, instruction_report, dataset):
     # Time
     desired_time = instruction['time']
@@ -636,7 +633,7 @@ def model_parameters(mdu_filepath):
         yield parameter, value
 
 
-def run_simulation(mdu_filepath):
+def run_simulation(mdu_filepath, report=None):
     mdu_report = report.mdu_reports[mdu_filepath]
     original_dir = os.getcwd()
     os.chdir(os.path.dirname(mdu_filepath))
@@ -703,8 +700,9 @@ def main():
                         default='.',
                         help='directory with the tests')
     args = parser.parse_args()
+    report = Report()
     logging.basicConfig(level=logging.DEBUG)
     for mdu_filepath in mdu_filepaths(args.directory):
-        run_simulation(mdu_filepath)
+        run_simulation(mdu_filepath, report=report)
     report.export_reports()
     create_archive_index()
