@@ -636,7 +636,7 @@ def model_parameters(mdu_filepath):
         yield parameter, value
 
 
-def run_simulation(mdu_filepath):
+def run_simulation(mdu_filepath, verbose=False):
     mdu_report = report.mdu_reports[mdu_filepath]
     original_dir = os.getcwd()
     os.chdir(os.path.dirname(mdu_filepath))
@@ -649,6 +649,8 @@ def run_simulation(mdu_filepath):
     logger.debug("Running %s", cmd)
     exit_code, output = system(cmd)
     last_output = ''.join(output.split('\n')[-2:]).lower()
+    if verbose:
+        logger.info(output)
     if exit_code or ('error' in last_output
                      and 'quitting' in last_output):
         logger.error("Loading failed: %s", mdu_filepath)
@@ -702,9 +704,10 @@ def main():
                         nargs='?',
                         default='.',
                         help='directory with the tests')
+    parser.add_argument('--verbose', default=False, action='store_true')
     args = parser.parse_args()
     logging.basicConfig(level=logging.DEBUG)
     for mdu_filepath in mdu_filepaths(args.directory):
-        run_simulation(mdu_filepath)
+        run_simulation(mdu_filepath, verbose=args.verbose)
     report.export_reports()
     create_archive_index()
