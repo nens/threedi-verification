@@ -666,6 +666,11 @@ def run_simulation(mdu_filepath, report=None, verbose=False):
         for csv_filename in csv_filenames:
             logger.info("Reading instructions from %s", csv_filename)
             check_csv(csv_filename, mdu_report=mdu_report)
+
+    # Cleanup: zap *.nc files.
+    for nc in [f for f in os.listdir('.') if f.endswith('.nc')]:
+        os.remove(nc)
+
     os.chdir(original_dir)
 
 
