@@ -65,6 +65,7 @@ class Command(BaseCommand):
                         self.test_case.last_modified,
                         last_modified)
             self.test_case.last_modified = last_modified
+            self.test_case.save()
         index_file = os.path.join(testdir, 'index.txt')
         if os.path.exists(index_file):
             self.test_case.info = open(index_file).readlines()
