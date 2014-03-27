@@ -92,10 +92,10 @@ class InstructionReport(object):
 
 class MduReport(object):
 
-    def __init__(self):
+    def __init__(self, mdu_filepath):
         self.log = None
         self.successfully_loaded_log = None
-        self.id = None
+        self.id = mdu_filepath
         self.instruction_reports = defaultdict(InstructionReport)
         self.loadable = True
         self.status = None
@@ -105,6 +105,28 @@ class MduReport(object):
 
     def __cmp__(self, other):
         return cmp(self.id, other.id)
+
+    def as_dict(self):
+        # Basically: what ends up in mdu.html as context.
+        result = dict(
+            loadable=self.loadable,
+            short_title=self.short_title,
+            index_lines=self.index_lines,
+            log=self.log,
+            successfully_loaded_log=self.successfully_loaded_log,
+            log_summary=self.log and self.log_summary or None,
+            csv_contents=self.csv_contents,
+            )
+
+        # .instructions
+        # .model_parameters
+        return result
+
+    def _propagate_ids(self):
+        for instruction_id in self.instruction_reports:
+            instruction_report = self.instruction_reports[
+                instruction_id]
+            instruction_report.id = instruction_id
 
     @property
     def log_filename(self):
@@ -189,10 +211,7 @@ class Report(object):
         for mdu_id in self.mdu_reports:
             mdu_report = self.mdu_reports[mdu_id]
             mdu_report.id = mdu_id
-            for instruction_id in mdu_report.instruction_reports:
-                instruction_report = mdu_report.instruction_reports[
-                    instruction_id]
-                instruction_report.id = instruction_id
+            mdu_report._propagage_ids()
 
     @property
     def mdus(self):
@@ -633,8 +652,7 @@ def model_parameters(mdu_filepath):
         yield parameter, value
 
 
-def run_simulation(mdu_filepath, report=None, verbose=False):
-    mdu_report = report.mdu_reports[mdu_filepath]
+def run_simulation(mdu_filepath, mdu_report=None, verbose=False):
     original_dir = os.getcwd()
     os.chdir(os.path.dirname(mdu_filepath))
     if 'index.txt' in os.listdir('.'):

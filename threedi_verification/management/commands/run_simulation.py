@@ -1,5 +1,6 @@
 import datetime
 import logging
+import optparse
 import os
 import sys
 
@@ -19,6 +20,14 @@ logger = logging.getLogger(__name__)
 class Command(BaseCommand):
     args = "FULL_PATH_TO_TEST_DIR"
     help = "Run one subgrid simulation"
+    option_list = BaseCommand.option_list + (
+        optparse.make_option(
+            '--force',
+            action='store_true',
+            dest='force',
+            default=False,
+            help="Force test run"),
+        )
 
     def handle(self, *args, **options):
         if not len(args) == 1 or not args[0].endswith('.mdu'):
@@ -28,7 +37,7 @@ class Command(BaseCommand):
 
         self.look_at_library()
         self.look_at_test_case()
-        self.set_up_test_run()
+        self.set_up_test_run(force=options['force'])
         if self.test_run is None:
             return
         self.run_simulation()
@@ -46,9 +55,10 @@ class Command(BaseCommand):
         testdir = os.path.dirname(self.full_path)
         relative_path = os.path.relpath(testdir,
                                         settings.TESTCASES_ROOT)
-        modification_timestamp = os.path.getmtime(testdir)
-        # ^^^ modification date of the whole directory. Note: doesn't
-        # work well when there's stuff in a subdirectory.
+        modification_timestamp = max([
+            os.path.getmtime(os.path.join(testdir, filename))
+            for filename in os.listdir(testdir)
+            if not filename.endswith('.dia')])
         last_modified = datetime.datetime.fromtimestamp(
             modification_timestamp)
         if not TestCase.objects.filter(
@@ -70,23 +80,29 @@ class Command(BaseCommand):
         if os.path.exists(index_file):
             self.test_case.info = open(index_file).readlines()
 
-    def set_up_test_run(self):
+    def set_up_test_run(self, force):
         """Set up the storage object for the test that need to be run."""
         datetime_needed = max(self.test_case.last_modified,
                               self.library_version.last_modified)
-        if TestRun.objects.filter(
+        existing_testruns = TestRun.objects.filter(
                 test_case=self.test_case,
-                run_started__gte=datetime_needed).exists():
-            logger.info("Test run for %s has already run earlier",
-                        self.test_case)
-            self.test_run = None
-            return
+            run_started__gte=datetime_needed)
+        if existing_testruns:
+            if force:
+                logger.info("Re-running test run because of --force")
+                self.test_run = existing_testruns[0]
+                return
+            else:
+                logger.info("Test run for %s has already run earlier",
+                            self.test_case)
+                self.test_run = None
+                return
         logger.info("Setting up a new test run for %s", self.test_case)
         self.test_run = TestRun.objects.create(
             test_case=self.test_case,
             library_version=self.library_version)
 
     def run_simulation(self):
-        report = verification.Report()
-        verification.run_simulation(self.full_path, report)
-        print(report)
+        mdu_report = verification.MduReport(self.full_path)
+        verification.run_simulation(self.full_path, mdu_report)
+        print(mdu_report.as_dict().keys())
