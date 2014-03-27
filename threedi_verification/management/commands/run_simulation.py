@@ -105,4 +105,5 @@ class Command(BaseCommand):
     def run_simulation(self):
         mdu_report = verification.MduReport(self.full_path)
         verification.run_simulation(self.full_path, mdu_report)
-        print(mdu_report.as_dict().keys())
+        self.test_run.report = mdu_report.as_dict()
+        self.test_run.save()
