@@ -4,7 +4,12 @@
 {% block main-column %}
   <ul>
     {% for library_version in view.library_versions %}
-      <li>{{ library_version }}</li>
+      <li>
+        {{ library_version }}
+        {% if library_version.is_fully_tested %}
+          CHECK
+        {% endif %}
+      </li>
     {% endfor %}
   </ul>
 {% endblock %}

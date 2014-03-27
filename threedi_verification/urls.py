@@ -12,7 +12,7 @@ urlpatterns = patterns(
     url(r'^$',
         views.HomeView.as_view(),
         name='threedi_verification.home'),
-    url(r'^library_versions/$',
+    url(r'^libraries/$',
         views.LibraryVersionsView.as_view(),
         name='threedi_verification.library_versions'),
     url(r'^test_cases/$',

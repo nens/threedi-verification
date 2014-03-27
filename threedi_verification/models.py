@@ -40,7 +40,10 @@ class LibraryVersion(models.Model):
 
     last_modified = models.DateTimeField(
         unique=True,
-        verbose_name=_("last modified"))  # auto_now_add just for easy testing.
+        verbose_name=_("last modified"))
+    num_test_cases = models.IntegerField(
+        default = 0,
+        verbose_name=_("number of test cases when library was first found"))
 
     class Meta:
         verbose_name = _("library")
@@ -49,6 +52,15 @@ class LibraryVersion(models.Model):
 
     def __unicode__(self):
         return _("library version of %s") % self.last_modified
+
+    def is_fully_tested(self):
+        """Have we been fully tested?
+
+        This means: have all the test cases that were present when the library
+        was first found actually been run? Perhaps a newer version was found
+        halfway the tests, if so, this library version can mostly be omitted.
+        """
+        return self.test_runs.all().count() >= self.num_test_cases
 
 
 class TestRun(models.Model):
@@ -59,7 +71,8 @@ class TestRun(models.Model):
         related_name='test_runs')
     library_version = models.ForeignKey(
         LibraryVersion,
-        verbose_name=_("library version"))
+        verbose_name=_("library version"),
+        related_name='test_runs')
     run_started = models.DateTimeField(
         auto_now_add=True,
         verbose_name=_("start of test run"))

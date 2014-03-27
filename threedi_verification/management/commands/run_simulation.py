@@ -51,6 +51,11 @@ class Command(BaseCommand):
             last_modified=last_modified)
         if created:
             logger.info("Found new library version: %s", self.library_version)
+            num_mdu_files = 0
+            for dirpath, dirnames, filenames in os.walk(settings.TESTCASES_ROOT):
+                num_mdu_files += len(
+                    [f for f in filenames if f.endswith('.mdu')])
+            self.library_version.num_test_cases = num_mdu_files
 
     def look_at_test_case(self):
         testdir = os.path.dirname(self.full_path)
