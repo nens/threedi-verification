@@ -5,6 +5,7 @@ models and to create reports about them.
 """
 from __future__ import print_function
 from collections import defaultdict
+from pprint import pprint
 import ConfigParser
 import argparse
 import csv
@@ -64,6 +65,25 @@ class InstructionReport(object):
     def __cmp__(self, other):
         return cmp(self.id, other.id)
 
+    def as_dict(self):
+        try:
+            found = float(self.found)
+        except:
+            found = str(self.found)
+        equal = bool(self.equal)
+        return dict(
+            log=self.log,
+            id=self.id,
+            parameter=self.parameter,
+            desired=self.desired,
+            margin=self.margin,
+            found=found,
+            equal=equal,
+            title=self.title,
+            invalid_desired_value=self.invalid_desired_value,
+            shortlog=self.shortlog,
+        )
+
     @property
     def shortlog(self):
         if self.log is None:
@@ -116,10 +136,11 @@ class MduReport(object):
             successfully_loaded_log=self.successfully_loaded_log,
             log_summary=self.log and self.log_summary or None,
             csv_contents=self.csv_contents,
+            model_parameters=self.model_parameters,
+            instruction_reports=[],
             )
-
-        # .instructions
-        # .model_parameters
+        for instruction_report in self.instruction_reports.values():
+            result['instruction_reports'].append(instruction_report.as_dict())
         return result
 
     def _propagate_ids(self):
