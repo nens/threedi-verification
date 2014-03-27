@@ -6,6 +6,7 @@ import logging
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+import jsonfield
 
 
 logger = logging.getLogger(__name__)
@@ -66,6 +67,7 @@ class TestRun(models.Model):
         blank=True,
         null=True,
         verbose_name=_("duration"))
+    report = jsonfield.JSONField()
 
     class Meta:
         verbose_name = _("test run")

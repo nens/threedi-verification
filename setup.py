@@ -13,6 +13,7 @@ install_requires = [
     'Jinja2',
     'django-debug-toolbar',
     'django-extensions',
+    'django-jsonfield',
     'gunicorn',
     'ipdb',
     'netCDF4',
