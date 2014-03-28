@@ -1,2 +1,13 @@
 {% extends "threedi_verification/base.html" %}
 {% load staticfiles %}
+
+{% block main-column %}
+  {% for library_version in view.fully_tested_library_versions %}
+    <div>
+      <a href="{{ library_version.get_absolute_url }}">
+        {{ library_version }}
+      </a>
+    </div>
+  {% endfor %}
+
+{% endblock %}

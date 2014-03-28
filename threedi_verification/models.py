@@ -4,7 +4,9 @@ from __future__ import print_function, unicode_literals
 from __future__ import absolute_import, division
 import logging
 
+from django.core.urlresolvers import reverse
 from django.db import models
+from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 import jsonfield
 
@@ -53,6 +55,10 @@ class LibraryVersion(models.Model):
     def __unicode__(self):
         return _("library version of %s") % self.last_modified
 
+    def get_absolute_url(self):
+        return reverse('threedi_verification.library_version',
+                       kwargs={'pk': self.pk})
+
     def is_fully_tested(self):
         """Have we been fully tested?
 
@@ -80,7 +86,11 @@ class TestRun(models.Model):
         blank=True,
         null=True,
         verbose_name=_("duration"))
+    has_crashed = models.BooleanField(
+        default=False,
+        verbose_name=_("has the calculation core crashed?"))
     report = jsonfield.JSONField()
+    result = jsonfield.JSONField()
 
     class Meta:
         verbose_name = _("test run")
@@ -89,3 +99,31 @@ class TestRun(models.Model):
 
     def __unicode__(self):
         return _("test run %s") % self.id
+
+    @cached_property
+    def has_crashed(self):
+        return bool(self.report['log'])
+
+    @cached_property
+    def num_wrong(self):
+        return len(
+            [ir for ir in self.report['instruction_reports']
+             if not ir['equal']])
+
+    @cached_property
+    def num_right(self):
+        return len(
+            [ir for ir in self.report['instruction_reports']
+             if ir['equal']])
+
+    @cached_property
+    def progress_bar_percentage_right(self):
+        if self.num_wrong + self.num_right == 0:  # Division by zero.
+            return 0
+        return int(100 * self.num_right / (self.num_wrong + self.num_right))
+
+    @cached_property
+    def progress_bar_percentage_wrong(self):
+        if self.num_wrong + self.num_right == 0:  # Division by zero.
+            return 0
+        return int(100 * self.num_wrong / (self.num_wrong + self.num_right))
