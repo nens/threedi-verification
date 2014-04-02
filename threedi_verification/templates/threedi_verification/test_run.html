@@ -1,0 +1,14 @@
+{% extends "threedi_verification/base.html" %}
+{% load staticfiles %}
+
+{% block main-column %}
+
+  {% if view.context.index_lines %}
+    <h2>Explanation of the test</h2>
+    {% for line in view.context.index_lines %}
+      <div>{{ line }}</div>
+     {% endfor %}
+  {% endif %}
+
+
+{% endblock %}

@@ -18,6 +18,14 @@ urlpatterns = patterns(
     url(r'^libraries/(?P<pk>\d+)/$',
         views.LibraryVersionView.as_view(),
         name='threedi_verification.library_version'),
+
+    url(r'^test_run/(?P<pk>\d+)/$',
+        views.TestRunView.as_view(),
+        name='threedi_verification.test_run'),
+
+    url(r'^log/(?P<pk>\d+)/$',
+        views.plain_log,
+        name='threedi_verification.log'),
     url(r'^test_cases/$',
         views.TestCasesView.as_view(),
         name='threedi_verification.test_cases'),

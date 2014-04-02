@@ -86,11 +86,7 @@ class TestRun(models.Model):
         blank=True,
         null=True,
         verbose_name=_("duration"))
-    has_crashed = models.BooleanField(
-        default=False,
-        verbose_name=_("has the calculation core crashed?"))
     report = jsonfield.JSONField()
-    result = jsonfield.JSONField()
 
     class Meta:
         verbose_name = _("test run")
@@ -102,7 +98,7 @@ class TestRun(models.Model):
 
     @cached_property
     def has_crashed(self):
-        return bool(self.report['log'])
+        return bool(self.report.get('log'))
 
     @cached_property
     def num_wrong(self):
