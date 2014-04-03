@@ -37,6 +37,12 @@ class TestCase(models.Model):
     def __unicode__(self):
         return _("test case %s") % self.filename
 
+    @cached_property
+    def pretty_name(self):
+        name = self.filename.split('/')[-1]
+        name = name.rstrip('.mdu')
+        return name
+
 
 class LibraryVersion(models.Model):
 

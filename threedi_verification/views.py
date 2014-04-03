@@ -98,20 +98,29 @@ class LibraryVersionView(BaseView):
                 if (not test_run.has_crashed) and (not test_run.duration)]
 
 
-def plain_log(request, pk=None):
-    test_run = TestRun.objects.get(pk=pk)
-    crash_content = test_run.report.get('log')
-    regular_content = test_run.report.get('successfully_loaded_log')
-    content = crash_content or regular_content
-    return HttpResponse(content, content_type='text/plain')
-
-
 class TestCasesView(BaseView):
     template_name = 'threedi_verification/test_cases.html'
     title = _("Test cases")
 
     def test_cases(self):
         return TestCase.objects.all()
+
+
+class TestCaseView(BaseView):
+    template_name = 'threedi_verification/test_case.html'
+    back_link_title = _("Back to test cases overview")
+
+    @property
+    def back_link(self):
+        return reverse('threedi_verification.test_cases')
+
+    @cached_property
+    def title(self):
+        return _("Test case %s") % self.test_case.pretty_name
+
+    @cached_property
+    def test_case(self):
+        return get_object_or_404(TestCase, pk=self.kwargs['pk'])
 
 
 class TestRunView(BaseView):
@@ -135,3 +144,11 @@ class TestRunView(BaseView):
     @cached_property
     def report(self):
         return self.test_run.report
+
+
+def plain_log(request, pk=None):
+    test_run = TestRun.objects.get(pk=pk)
+    crash_content = test_run.report.get('log')
+    regular_content = test_run.report.get('successfully_loaded_log')
+    content = crash_content or regular_content
+    return HttpResponse(content, content_type='text/plain')
