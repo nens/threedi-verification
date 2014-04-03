@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    args = "FULL_PATH_TO_TEST_DIR"
+    args = "mdu file"
     help = "Run one subgrid simulation"
     option_list = BaseCommand.option_list + (
         optparse.make_option(
