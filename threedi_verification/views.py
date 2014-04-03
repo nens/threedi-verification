@@ -129,6 +129,20 @@ class TestCaseView(BaseView):
     def test_case(self):
         return get_object_or_404(TestCase, pk=self.kwargs['pk'])
 
+    @cached_property
+    def test_runs(self):
+        return self.test_case.test_runs.filter(
+            duration__gt=0).order_by(
+            'last_modified', 'library_version', '-run_started')
+
+    @cached_property
+    def grouped_test_runs(self):
+        per_test_case = OrderedDict()
+        for test_case, group in itertools.groupby(
+                self.test_runs, lambda test_run: test_run.test_case):
+            per_test_case[test_case] = list(group)
+        return per_test_case
+
 
 class TestRunView(BaseView):
     template_name = 'threedi_verification/test_run.html'
