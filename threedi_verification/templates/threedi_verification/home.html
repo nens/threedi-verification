@@ -1,13 +1,23 @@
 {% extends "threedi_verification/base.html" %}
 {% load staticfiles %}
+{% load i18n %}
 
 {% block main-column %}
-  {% for library_version in view.fully_tested_library_versions %}
-    <div>
-      <a href="{{ library_version.get_absolute_url }}">
-        {{ library_version }}
-      </a>
-    </div>
-  {% endfor %}
+
+  <p>
+    <a class="btn btn-primary btn-lg"
+       href="{% url 'threedi_verification.library_versions' %}">
+      <span class="glyphicon glyphicon-arrow-right"></span>
+      {% trans "Library versions overview" %}
+    </a>
+  </p>
+
+  <p>
+    <a class="btn btn-primary btn-lg"
+       href="{% url 'threedi_verification.test_cases' %}">
+      <span class="glyphicon glyphicon-arrow-right"></span>
+      {% trans "Test cases overview" %}
+    </a>
+  </p>
 
 {% endblock %}
