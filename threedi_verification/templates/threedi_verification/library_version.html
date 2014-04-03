@@ -57,7 +57,9 @@
           <tr {% if not forloop.first %}class="text-muted"{% endif %}>
             {% if forloop.first %}
               <td rowspan="{{ test_runs|length }}">
-                {{ test_run.report.short_title }}
+                <a href="{{ test_case.get_absolute_url }}">
+                  {{ test_case.pretty_name }}
+                </a>
               </td>
             {% endif %}
             <td>

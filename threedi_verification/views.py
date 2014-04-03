@@ -101,6 +101,11 @@ class LibraryVersionView(BaseView):
 class TestCasesView(BaseView):
     template_name = 'threedi_verification/test_cases.html'
     title = _("Test cases")
+    back_link_title = _("Back to home")
+
+    @property
+    def back_link(self):
+        return reverse('threedi_verification.home')
 
     def test_cases(self):
         return TestCase.objects.all()

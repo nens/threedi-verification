@@ -4,7 +4,11 @@
 {% block main-column %}
   <ul>
     {% for test_case in view.test_cases %}
-      <li>{{ test_case }}</li>
+      <li>
+        <a href="{{ test_case.get_absolute_url }}">
+          {{ test_case.pretty_name }}
+        </a>
+      </li>
     {% endfor %}
   </ul>
 {% endblock %}

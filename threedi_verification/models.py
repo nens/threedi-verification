@@ -37,6 +37,10 @@ class TestCase(models.Model):
     def __unicode__(self):
         return _("test case %s") % self.filename
 
+    def get_absolute_url(self):
+        return reverse('threedi_verification.test_case',
+                       kwargs={'pk': self.pk})
+
     @cached_property
     def pretty_name(self):
         name = self.filename.split('/')[-1]
@@ -101,6 +105,10 @@ class TestRun(models.Model):
 
     def __unicode__(self):
         return _("test run %s") % self.id
+
+    def get_absolute_url(self):
+        return reverse('threedi_verification.test_run',
+                       kwargs={'pk': self.pk})
 
     @cached_property
     def has_crashed(self):
