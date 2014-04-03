@@ -17,7 +17,9 @@
       {% for test_run in view.crashed_test_runs %}
         <tr>
           <td>
-            {{ test_run.report.short_title }}
+            <a href="{{ test_run.test_case_version.test_case.get_absolute_url }}">
+              {{ test_run.test_case_version.test_case.pretty_name }}
+            </a>
           </td>
           <td>
             {{ test_run.duration|floatformat }}
@@ -47,7 +49,6 @@
           Result<br>
           <span class="text-muted">(click bar for details)</span>
         </th>
-        <th>Log</th>
       </tr>
     </thead>
 
@@ -81,12 +82,6 @@
                 </div>
               </a>
 
-            </td>
-            <td>
-              <a href="{% url 'threedi_verification.log' pk=test_run.pk %}">
-                <span class="glyphicon glyphicon-list-alt"
-                      title="Logfile"></span>
-              </a>
             </td>
           </tr>
        {% endfor %}
