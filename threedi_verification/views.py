@@ -6,6 +6,7 @@ from collections import OrderedDict
 import itertools
 import logging
 
+from django.core.urlresolvers import reverse
 from django.db.models import Count
 from django.db.models import F
 from django.http import HttpResponse
@@ -25,6 +26,8 @@ class BaseView(TemplateView):
     template_name = 'threedi_verification/base.html'
     title = _("3Di library test")
     subtitle = None
+    back_link = None
+    back_link_title = None
 
 
 class HomeView(BaseView):
@@ -41,6 +44,12 @@ class HomeView(BaseView):
 class LibraryVersionsView(BaseView):
     template_name = 'threedi_verification/library_versions.html'
     title = _("Library versions")
+    subtitle = _("newest at the top")
+    back_link_title = _("Back to home")
+
+    @property
+    def back_link(self):
+        return reverse('threedi_verification.home')
 
     def library_versions(self):
         return LibraryVersion.objects.all()
@@ -49,6 +58,11 @@ class LibraryVersionsView(BaseView):
 class LibraryVersionView(BaseView):
     template_name = 'threedi_verification/library_version.html'
     title = _("Library version")
+    back_link_title = _("Back to library versions overview")
+
+    @property
+    def back_link(self):
+        return reverse('threedi_verification.library_versions')
 
     @cached_property
     def subtitle(self):
@@ -103,6 +117,12 @@ class TestCasesView(BaseView):
 class TestRunView(BaseView):
     template_name = 'threedi_verification/test_run.html'
     title = _("Test run")
+    back_link_title = _("Back to library version")
+
+    @property
+    def back_link(self):
+        return reverse('threedi_verification.library_version',
+                       kwargs={'pk': self.test_run.library_version.pk})
 
     @cached_property
     def test_run(self):

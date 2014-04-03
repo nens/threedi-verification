@@ -5,9 +5,11 @@
   <ul>
     {% for library_version in view.library_versions %}
       <li>
-        {{ library_version }}
-        {% if library_version.is_fully_tested %}
-          CHECK
+        <a href="{{ library_version.get_absolute_url }}">
+          {{ library_version }}
+        </a>
+        {% if not library_version.is_fully_tested %}
+          <span class="text-muted">(niet volledig getest)</span>
         {% endif %}
       </li>
     {% endfor %}

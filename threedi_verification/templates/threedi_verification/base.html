@@ -31,6 +31,15 @@
             <small>{{ view.subtitle }}</small>
           {% endif %}
         </h1>
+        {% if view.back_link %}
+          <div>
+            <a href="{{ view.back_link }}">
+              &larr; {{ view.back_link_title }}
+            </a>
+          </div>
+        {% endif %}
+
+
       </div>
 
       {% for message in messages %}

@@ -1,4 +1,3 @@
-from django.conf.urls import include
 from django.conf.urls import patterns
 from django.conf.urls import url
 from django.contrib import admin
@@ -29,4 +28,4 @@ urlpatterns = patterns(
     url(r'^test_cases/$',
         views.TestCasesView.as_view(),
         name='threedi_verification.test_cases'),
-    )
+)
