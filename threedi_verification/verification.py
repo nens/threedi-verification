@@ -135,7 +135,8 @@ class MduReport(object):
             short_title=self.short_title,
             index_lines=self.index_lines,
             log=self.log,
-            successfully_loaded_log=self.successfully_loaded_log,
+            #successfully_loaded_log=self.successfully_loaded_log,
+            successfully_loaded_log=None,  # No verbosity at the moment
             log_summary=self.log and self.log_summary or None,
             csv_contents=self.csv_contents,
             model_parameters=self.model_parameters,
