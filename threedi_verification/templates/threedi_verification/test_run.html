@@ -2,13 +2,85 @@
 {% load staticfiles %}
 
 {% block main-column %}
+  {# Note: mostly copy/pasted from the old 'mdu.html' template #}
 
-  {% if view.context.index_lines %}
-    <h2>Explanation of the test</h2>
-    {% for line in view.context.index_lines %}
-      <div>{{ line }}</div>
-     {% endfor %}
+  {% if view.report.index_lines %}
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        Explanation of the test
+      </div>
+      <div class="panel-body">
+        {% for line in view.report.index_lines %}
+          <div>{{ line }}</div>
+        {% endfor %}
+      </div>
+    </div>
   {% endif %}
 
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Parameter</th>
+        <th class="text-right">Expected</th>
+        <th class="text-right">Found</th>
+        <th>Margin</th>
+        <th>What</th>
+        <th>Note</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for instruction in view.report.instruction_reports %}
+        <tr>
+          <td>
+            {{ instruction.parameter }}
+          </td>
+          <td class="text-right">
+            {% if instruction.invalid_desired_value %}
+              <span class="wrong">
+                <i class="icon-remove"></i>
+                {{ instruction.invalid_desired_value }}
+              </span>
+            {% else %}
+              {{ instruction.desired }}
+            {% endif %}
+          </td>
+          <td class="text-right">
+            {% if instruction.equal %}
+              <span class="text-success">
+                {{ instruction.found }}
+                <span class="glyphicon glyphicon-ok"></span>
+              </span>
+            {% elif instruction.log %}
+              <span class="text-danger has-tooltip"
+                    title="{{ instruction.shortlog|escape }}">
+                An error occurred
+                <span class="glyphicon glyphicon-remove"></span>
+              </span>
+            {% else %}
+              <span class="text-danger">
+                {{ instruction.found }}
+                <span class="glyphicon glyphicon-remove"></span>
+              </span>
+            {% endif %}
+          </td>
+          <td>
+            {{ instruction.epsilon }}
+            {% if not instruction.margin == None %}
+              ({{ instruction.margin }})
+            {% endif %}
+          </td>
+          <td>
+            {% for comment in instruction.what %}
+              {{ comment }}
+              {% if not loop.latest %}<br />{% endif %}
+            {% endfor %}
+          </td>
+          <td>
+            {{ instruction.title }}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
 {% endblock %}

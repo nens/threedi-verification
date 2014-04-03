@@ -1,7 +1,9 @@
 # (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.txt.
 # -*- coding: utf-8 -*-
-from __future__ import print_function, unicode_literals
 from __future__ import absolute_import, division
+from __future__ import print_function, unicode_literals
+from collections import OrderedDict
+import itertools
 import logging
 
 from django.db.models import Count
@@ -58,7 +60,8 @@ class LibraryVersionView(BaseView):
 
     @cached_property
     def all_test_runs(self):
-        return self.library_version.test_runs.all()
+        return self.library_version.test_runs.all().order_by(
+            'test_case', '-run_started')
 
     @cached_property
     def crashed_test_runs(self):
@@ -67,8 +70,13 @@ class LibraryVersionView(BaseView):
 
     @cached_property
     def completed_test_runs(self):
-        return [test_run for test_run in self.all_test_runs
-                if (not test_run.has_crashed) and test_run.duration]
+        test_runs = [test_run for test_run in self.all_test_runs
+                     if (not test_run.has_crashed) and test_run.duration]
+        per_test_case = OrderedDict()
+        for test_case, group in itertools.groupby(
+                test_runs, lambda test_run: test_run.test_case):
+            per_test_case[test_case] = list(group)
+        return per_test_case
 
     @cached_property
     def uncompleted_test_runs(self):
@@ -105,6 +113,5 @@ class TestRunView(BaseView):
         return 'for %s' % self.test_run.test_case
 
     @cached_property
-    def context(self):
-        # The old template I reused used 'context'.
+    def report(self):
         return self.test_run.report

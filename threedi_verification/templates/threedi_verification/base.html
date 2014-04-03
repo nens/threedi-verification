@@ -33,31 +33,18 @@
         </h1>
       </div>
 
-      {% block full-width %}
-        <div class="row">
-          <!-- Rows on desktop and horizontal ipads; stacked otherwise. -->
-          <div class="col-md-3 col-md-offset-1">
-            {% block sidebar %}
-              Sidebar
-            {% endblock %}
-          </div>
-          <div class="col-md-8">
-            {% for message in messages %}
-              <div class="alert alert-{{ message.tags }} alert-dismissable">
-                <button type="button"
-                        class="close"
-                        data-dismiss="alert"
-                        aria-hidden="true">&times;</button>
-                {{ message }}
-              </div>
-            {% endfor %}
-
-            {% block main-column %}
-              Main column
-            {% endblock %}
-          </div>
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissable">
+          <button type="button"
+                  class="close"
+                  data-dismiss="alert"
+                  aria-hidden="true">&times;</button>
+          {{ message }}
         </div>
+      {% endfor %}
 
+      {% block main-column %}
+        Main column
       {% endblock %}
 
     </div>

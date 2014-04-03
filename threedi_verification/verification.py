@@ -77,11 +77,13 @@ class InstructionReport(object):
             parameter=self.parameter,
             desired=self.desired,
             margin=self.margin,
+            epsilon=self.epsilon,
             found=found,
             equal=equal,
             title=self.title,
             invalid_desired_value=self.invalid_desired_value,
             shortlog=self.shortlog,
+            what=self.what,
         )
 
     @property
