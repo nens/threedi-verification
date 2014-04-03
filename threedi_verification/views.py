@@ -17,6 +17,7 @@ from django.views.generic.base import TemplateView
 
 from threedi_verification.models import LibraryVersion
 from threedi_verification.models import TestCase
+from threedi_verification.models import TestCaseVersion
 from threedi_verification.models import TestRun
 
 logger = logging.getLogger(__name__)
@@ -33,12 +34,6 @@ class BaseView(TemplateView):
 class HomeView(BaseView):
     template_name = 'threedi_verification/home.html'
     subtitle = _("overview")
-
-    def fully_tested_library_versions(self):
-        """Return latest three fully tested library versions."""
-        return LibraryVersion.objects.annotate(
-            num_test_runs=Count('test_runs')).filter(
-                num_test_runs__gte=F('num_test_cases'))[:3]
 
 
 class LibraryVersionsView(BaseView):
@@ -65,17 +60,17 @@ class LibraryVersionView(BaseView):
         return reverse('threedi_verification.library_versions')
 
     @cached_property
-    def subtitle(self):
-        return 'from %s' % self.library_version.last_modified
-
-    @cached_property
     def library_version(self):
         return get_object_or_404(LibraryVersion, pk=self.kwargs['pk'])
 
     @cached_property
+    def subtitle(self):
+        return 'from %s' % self.library_version.last_modified
+
+    @cached_property
     def all_test_runs(self):
         return self.library_version.test_runs.all().order_by(
-            'test_case', '-run_started')
+            'test_case_version__test_case', '-run_started')
 
     @cached_property
     def crashed_test_runs(self):
@@ -88,14 +83,9 @@ class LibraryVersionView(BaseView):
                      if (not test_run.has_crashed) and test_run.duration]
         per_test_case = OrderedDict()
         for test_case, group in itertools.groupby(
-                test_runs, lambda test_run: test_run.test_case):
+                test_runs, lambda test_run: test_run.test_case_version.test_case):
             per_test_case[test_case] = list(group)
         return per_test_case
-
-    @cached_property
-    def uncompleted_test_runs(self):
-        return [test_run for test_run in self.all_test_runs
-                if (not test_run.has_crashed) and (not test_run.duration)]
 
 
 class TestCasesView(BaseView):
@@ -108,9 +98,7 @@ class TestCasesView(BaseView):
         return reverse('threedi_verification.home')
 
     def test_cases(self):
-        return TestCase.objects.annotate(
-            num_test_runs=Count('test_runs__duration')).exclude(
-                num_test_runs=0)
+        return TestCase.objects.all()
 
 
 class TestCaseView(BaseView):
@@ -131,17 +119,17 @@ class TestCaseView(BaseView):
 
     @cached_property
     def test_runs(self):
-        return self.test_case.test_runs.filter(
+        return self.test_case.test_case_versions.test_runs.filter(
             duration__gt=0).order_by(
-            'last_modified', 'library_version', '-run_started')
+                'test_case_version', 'library_version', '-run_started')
 
     @cached_property
     def grouped_test_runs(self):
-        per_test_case = OrderedDict()
-        for test_case, group in itertools.groupby(
-                self.test_runs, lambda test_run: test_run.test_case):
-            per_test_case[test_case] = list(group)
-        return per_test_case
+        per_test_case_version = OrderedDict()
+        for test_case_version in self.test_case.test_case_versions.all():
+            test_runs = test_case_version.test_runs.all()
+            per_test_case_version[test_case_version] = list(test_runs)
+        return per_test_case_version
 
 
 class TestRunView(BaseView):

@@ -2,45 +2,12 @@
 {% load staticfiles %}
 
 {% block main-column %}
-  <h1>Crashes</h1>
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Test case</th>
-        <th>Duration</th>
-        <th>Log summary</th>
-        <th>Log</th>
-      </tr>
-    </thead>
-
-    <tbody>
-      {% for test_run in view.crashed_test_runs %}
-        <tr>
-          <td>
-            {{ test_run.report.short_title }}
-          </td>
-          <td>
-            {{ test_run.duration|floatformat }}
-          </td>
-          <td>
-            {{ test_run.report.log_summary|linebreaksbr }}
-          </td>
-          <td>
-            <a href="{% url 'threedi_verification.log' pk=test_run.pk %}">
-              <span class="glyphicon glyphicon-list-alt"
-                    title="Logfile"></span>
-            </a>
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
   <h1>Test results</h1>
   <table class="table">
     <thead>
       <tr>
-        <th>Test case</th>
+        <th>Test case version</th>
+        <th>Library version</th>
         <th>Duration</th>
         <th>Start date</th>
         <th>
@@ -52,14 +19,19 @@
     </thead>
 
     <tbody>
-      {% for test_case, test_runs in view.completed_test_runs.items %}
+      {% for test_case_version, test_runs in view.grouped_test_runs.items %}
         {% for test_run in test_runs %}
           <tr {% if not forloop.first %}class="text-muted"{% endif %}>
             {% if forloop.first %}
               <td rowspan="{{ test_runs|length }}">
-                {{ test_run.report.short_title }}
+                {{ test_run.test_case_version.last_modified }}
               </td>
             {% endif %}
+            <td>
+              <a href="{{ test_run.library_version.get_absolute_url }}">
+                {{ test_run.library_version }}
+              </a>
+            </td>
             <td>
               {{ test_run.duration|floatformat }}
             </td>
