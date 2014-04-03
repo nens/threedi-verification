@@ -69,7 +69,8 @@ class Command(BaseCommand):
         modification_timestamp = max([
             os.path.getmtime(os.path.join(testdir, filename))
             for filename in os.listdir(testdir)
-            if not filename.endswith('.dia')])
+            if not (filename.endswith('.dia') or
+                    filename.startswith('fort.'))])
         last_modified = datetime.datetime.fromtimestamp(
             modification_timestamp)
 

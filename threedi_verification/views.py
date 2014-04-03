@@ -118,16 +118,13 @@ class TestCaseView(BaseView):
         return get_object_or_404(TestCase, pk=self.kwargs['pk'])
 
     @cached_property
-    def test_runs(self):
-        return self.test_case.test_case_versions.test_runs.filter(
-            duration__gt=0).order_by(
-                'test_case_version', 'library_version', '-run_started')
-
-    @cached_property
     def grouped_test_runs(self):
         per_test_case_version = OrderedDict()
-        for test_case_version in self.test_case.test_case_versions.all():
-            test_runs = test_case_version.test_runs.all()
+        test_case_versions = self.test_case.test_case_versions.all().order_by(
+            '-last_modified')
+        for test_case_version in test_case_versions:
+            test_runs = test_case_version.test_runs.all().order_by(
+                'library_version')
             per_test_case_version[test_case_version] = list(test_runs)
         return per_test_case_version
 
