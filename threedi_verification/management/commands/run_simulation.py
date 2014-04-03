@@ -10,6 +10,7 @@ from django.core.management.base import BaseCommand
 
 from threedi_verification.models import LibraryVersion
 from threedi_verification.models import TestCase
+from threedi_verification.models import TestCaseVersion
 from threedi_verification.models import TestRun
 from threedi_verification import verification
 
@@ -44,6 +45,7 @@ class Command(BaseCommand):
         self.run_simulation()
 
     def look_at_library(self):
+        """Look at the library and create a new library version, if needed."""
         modification_timestamp = os.path.getmtime(LIBRARY_LOCATION)
         last_modified = datetime.datetime.fromtimestamp(
             modification_timestamp)
@@ -58,41 +60,41 @@ class Command(BaseCommand):
             self.library_version.num_test_cases = num_mdu_files
 
     def look_at_test_case(self):
+        """Look at the test case and create a new version, if needed."""
         testdir = os.path.dirname(self.full_path)
         relative_path = os.path.relpath(testdir,
                                         settings.TESTCASES_ROOT)
+        test_case = TestCase.objects.get(filename=relative_path)
+
         modification_timestamp = max([
             os.path.getmtime(os.path.join(testdir, filename))
             for filename in os.listdir(testdir)
             if not filename.endswith('.dia')])
         last_modified = datetime.datetime.fromtimestamp(
             modification_timestamp)
-        if not TestCase.objects.filter(
-                filename=relative_path).exists():
-            self.test_case = TestCase.objects.create(
-                filename=relative_path,
+
+        if not TestCaseVersion.objects.filter(
+                test_case=test_case,
+                last_modified=last_modified).exists():
+            self.test_case_version = TestCaseVersion.objects.create(
+                test_case=test_case,
                 last_modified=last_modified)
-            logger.info("Found new testcase: %s", self.test_case)
+            logger.info("Created new test case version: %s", self.test_case_version)
         else:
-            self.test_case = TestCase.objects.get(filename=relative_path)
-        if last_modified != self.test_case.last_modified:
-            logger.info("Updating %s from %s to %s",
-                        self.test_case,
-                        self.test_case.last_modified,
-                        last_modified)
-            self.test_case.last_modified = last_modified
-            self.test_case.save()
+            self.test_case_version = TestCaseVersion.objects.get(
+                test_case=test_case,
+                last_modified=last_modified)
         index_file = os.path.join(testdir, 'index.txt')
         if os.path.exists(index_file):
-            self.test_case.info = open(index_file).readlines()
+            # Make sure the content is up to date.
+            test_case.info = open(index_file).readlines()
+            test_case.save()
 
     def set_up_test_run(self, force):
         """Set up the storage object for the test that need to be run."""
-        datetime_needed = max(self.test_case.last_modified,
-                              self.library_version.last_modified)
         existing_testruns = TestRun.objects.filter(
-                test_case=self.test_case,
-            run_started__gte=datetime_needed)
+            test_case_version=self.test_case_version,
+            library_version=self.library_version)
         if existing_testruns:
             if force:
                 logger.info("Re-running test run because of --force")
@@ -103,9 +105,9 @@ class Command(BaseCommand):
                             self.test_case)
                 self.test_run = None
                 return
-        logger.info("Setting up a new test run for %s", self.test_case)
+        logger.info("Setting up a new test run for %s", self.test_case_version)
         self.test_run = TestRun.objects.create(
-            test_case=self.test_case,
+            test_case_version=self.test_case_version,
             library_version=self.library_version)
 
     def run_simulation(self):

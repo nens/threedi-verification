@@ -22,8 +22,6 @@ class TestCase(models.Model):
         help_text=_(
             "MDU filename, including path, inside the 'testbank' directory"),
         max_length=255)
-    last_modified = models.DateTimeField(
-        verbose_name=_("last modified"))
     info = models.TextField(
         verbose_name=_("information"),
         blank=True,
@@ -46,6 +44,29 @@ class TestCase(models.Model):
         name = self.filename.split('/')[-1]
         name = name.rstrip('.mdu')
         return name
+
+
+class TestCaseVersion(models.Model):
+
+    test_case = models.ForeignKey(
+        TestCase,
+        verbose_name=_("test case"),
+        related_name='test_case_versions')
+
+    last_modified = models.DateTimeField(
+        verbose_name=_("last modified"))
+
+    class Meta:
+        verbose_name = _("test case version")
+        verbose_name_plural = _("test case versions")
+        ordering = ['test_case', 'last_modified']
+
+    def __unicode__(self):
+        return _("version %s of %s") % (self.last_modified, self.test_case)
+
+    def get_absolute_url(self):
+        return reverse('threedi_verification.test_case',
+                       kwargs={'pk': self.pk})
 
 
 class LibraryVersion(models.Model):
@@ -81,9 +102,9 @@ class LibraryVersion(models.Model):
 
 class TestRun(models.Model):
 
-    test_case = models.ForeignKey(
-        TestCase,
-        verbose_name=_("test case"),
+    test_case_version = models.ForeignKey(
+        TestCaseVersion,
+        verbose_name=_("test case version"),
         related_name='test_runs')
     library_version = models.ForeignKey(
         LibraryVersion,
