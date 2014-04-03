@@ -108,7 +108,9 @@ class TestCasesView(BaseView):
         return reverse('threedi_verification.home')
 
     def test_cases(self):
-        return TestCase.objects.all()
+        return TestCase.objects.annotate(
+            num_test_runs=Count('test_runs__duration')).exclude(
+                num_test_runs=0)
 
 
 class TestCaseView(BaseView):
