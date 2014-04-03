@@ -83,4 +83,21 @@
     </tbody>
   </table>
 
+  <h2>Model parameters</h2>
+  <dl>
+    {% for parameter, value in view.report.model_parameters %}
+      <dt>{{ parameter }}</dt>
+      <dd>{{ value }}</dd>
+    {% endfor %}
+  </dl>
+
+  {% if view.report.csv_contents %}
+    <h2>Test instructions <small>for debug purposes</small></h2>
+    {% for csv_contents in view.report.csv_contents %}
+      <p>This is what Python read from <code>{{ csv_contents.filename }}</code>:</p>
+      <pre>{{ csv_contents.contents }}</pre>
+    {% endfor %}
+  {% endif %}
+
+
 {% endblock %}
