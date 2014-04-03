@@ -62,9 +62,9 @@ class Command(BaseCommand):
     def look_at_test_case(self):
         """Look at the test case and create a new version, if needed."""
         testdir = os.path.dirname(self.full_path)
-        relative_path = os.path.relpath(testdir,
+        relative_path = os.path.relpath(self.full_path,
                                         settings.TESTCASES_ROOT)
-        test_case = TestCase.objects.get(filename=relative_path)
+        self.test_case = TestCase.objects.get(filename=relative_path)
 
         modification_timestamp = max([
             os.path.getmtime(os.path.join(testdir, filename))
@@ -74,21 +74,21 @@ class Command(BaseCommand):
             modification_timestamp)
 
         if not TestCaseVersion.objects.filter(
-                test_case=test_case,
+                test_case=self.test_case,
                 last_modified=last_modified).exists():
             self.test_case_version = TestCaseVersion.objects.create(
-                test_case=test_case,
+                test_case=self.test_case,
                 last_modified=last_modified)
             logger.info("Created new test case version: %s", self.test_case_version)
         else:
             self.test_case_version = TestCaseVersion.objects.get(
-                test_case=test_case,
+                test_case=self.test_case,
                 last_modified=last_modified)
         index_file = os.path.join(testdir, 'index.txt')
         if os.path.exists(index_file):
             # Make sure the content is up to date.
-            test_case.info = open(index_file).readlines()
-            test_case.save()
+            self.test_case.info = open(index_file).readlines()
+            self.test_case.save()
 
     def set_up_test_run(self, force):
         """Set up the storage object for the test that need to be run."""
