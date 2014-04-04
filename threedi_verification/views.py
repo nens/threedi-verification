@@ -74,8 +74,9 @@ class LibraryVersionView(BaseView):
 
     @cached_property
     def all_test_runs(self):
-        return self.library_version.test_runs.all().order_by(
-            'test_case_version__test_case', '-run_started')
+        return self.library_version.test_runs.filter(
+            test_case_version__test_case__has_csv=True).order_by(
+                'test_case_version__test_case', '-run_started')
 
     @cached_property
     def crashed_test_runs(self):

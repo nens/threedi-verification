@@ -112,7 +112,8 @@ class LibraryVersion(models.Model):
     def num_crashes(self):
         """Return range for use in a for loop to display 'x' icons."""
         # This one probably needs caching.
-        return range(len([test_run for test_run in self.test_runs.all()
+        return range(len([test_run for test_run in self.test_runs.filter(
+            test_case_version__test_case__has_csv=True)
                           if test_run.has_crashed]))
 
 
