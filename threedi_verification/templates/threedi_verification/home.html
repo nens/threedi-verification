@@ -44,7 +44,11 @@
               <li>
                 <a href="{% url 'threedi_verification.test_run' pk=test_run.pk %}">
                   {{ test_run.run_started }}
-                </a><br>
+                </a>
+                {% if not test_run.duration %}
+                  <span class="label label-success">Currently running</span>
+                {% endif %}
+                <br>
                 <span class="text-muted">
                   Test case:
                   {{ test_run.test_case_version.test_case.pretty_name }}
