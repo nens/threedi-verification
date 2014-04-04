@@ -12,7 +12,7 @@ STATIC_URL = '/static/'
 ROOT_URLCONF = 'threedi_verification.urls'
 SECRET_KEY = 'sleutel van het secreet'
 DEBUG = False
-ALLOWED_HOSTS = ['jenkins.3di.lizard.net',]
+ALLOWED_HOSTS = ['jenkins.3di.lizard.net', 'localhost']
 TEMPLATE_DEBUG = True
 DATABASES = {
     'default': {'ENGINE': 'django.db.backends.sqlite3',
