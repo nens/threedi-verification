@@ -21,7 +21,16 @@
           </td>
           <td>
 
-            {% if test_case.latest_test_run.has_crashed %}
+            {% if not test_case.has_csv %}
+              <div class="pull-left text-danger"
+                   style="font-size: 300%;">
+                <span class="glyphicon glyphicon-remove"></span>
+              </div>
+              <div>
+                This test case has no .csv file with test instructions, so it
+                is pretty much meaningless.
+              </div>
+            {% elif test_case.latest_test_run.has_crashed %}
               <div class="pull-left text-danger"
                    style="font-size: 300%;">
                 <span class="glyphicon glyphicon-remove"></span>
