@@ -2,16 +2,33 @@
 {% load staticfiles %}
 
 {% block main-column %}
-  <ul>
-    {% for library_version in view.library_versions %}
-      <li>
-        <a href="{{ library_version.get_absolute_url }}">
-          {{ library_version }}
-        </a>
-        {% if not library_version.is_fully_tested %}
-          <span class="text-muted">(niet volledig getest)</span>
-        {% endif %}
-      </li>
-    {% endfor %}
-  </ul>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Library version</th>
+        <th>Number of crashes</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for library_version in view.library_versions %}
+        <tr>
+          <td>
+            <a href="{{ library_version.get_absolute_url }}">
+              {{ library_version }}
+            </a>
+            {% if not library_version.is_fully_tested %}
+              <span class="text-muted">(niet volledig getest)</span>
+            {% endif %}
+          </td>
+          <td class="text-danger">
+            {% for i in library_version.num_crashes %}
+              <span class="glyphicon glyphicon-remove"></span>
+            {% endfor %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
 {% endblock %}

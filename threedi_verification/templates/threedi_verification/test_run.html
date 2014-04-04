@@ -4,19 +4,34 @@
 {% block main-column %}
   {# Note: mostly copy/pasted from the old 'mdu.html' template #}
 
-  {% if view.report.index_lines %}
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        Explanation of the test
-      </div>
-      <div class="panel-body">
-        {% for line in view.report.index_lines %}
-          <div>{{ line }}</div>
-        {% endfor %}
-      </div>
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <dl>
+        <dt>Library version</dt>
+        <dd>
+          <a href="{{ view.test_run.library_version.get_absolute_url }}">
+            {{ view.test_run.library_version }}
+          </a>
+        </dd>
+        <dt>Test case</dt>
+        <dd>
+          <a href="{{ view.test_run.test_case_version.test_case.get_absolute_url }}">
+            {{ view.test_run.test_case_version.test_case.pretty_name }}
+          </a>
+        </dd>
+        {% if view.report.index_lines %}
+          <dt>Test explanation</dt>
+          <dd>
+            {% for line in view.report.index_lines %}
+              <div>{{ line }}</div>
+              {% endfor %}
+          </dd>
+        {% endif %}
+      </dl>
     </div>
-  {% endif %}
+  </div>
 
+  <h2>Test results</h2>
   <table class="table table-striped">
     <thead>
       <tr>

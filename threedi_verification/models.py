@@ -62,7 +62,8 @@ class TestCaseVersion(models.Model):
         ordering = ['test_case', 'last_modified']
 
     def __unicode__(self):
-        return _("version %s of %s") % (self.last_modified, self.test_case)
+        return _("version %s of %s") % (self.last_modified,
+                                        self.test_case.pretty_name)
 
     def get_absolute_url(self):
         return reverse('threedi_verification.test_case',
@@ -98,6 +99,13 @@ class LibraryVersion(models.Model):
         halfway the tests, if so, this library version can mostly be omitted.
         """
         return self.test_runs.all().count() >= self.num_test_cases
+
+    @cached_property
+    def num_crashes(self):
+        """Return range for use in a for loop to display 'x' icons."""
+        # This one probably needs caching.
+        return range(len([test_run for test_run in self.test_runs.all()
+                          if test_run.has_crashed]))
 
 
 class TestRun(models.Model):
