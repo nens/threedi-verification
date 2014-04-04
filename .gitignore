@@ -41,3 +41,5 @@ testbank
 .DS_Store
 
 bower_components/
+
+buildout.cfg
