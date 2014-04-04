@@ -4,6 +4,25 @@
 {% block main-column %}
   {# Note: mostly copy/pasted from the old 'mdu.html' template #}
 
+  {% if not view.test_run.test_case_version.test_case.has_csv %}
+    <div class="panel panel-danger">
+      <div class="panel-heading">Watch out!</div>
+      <div class="panel-body">
+        This test case has no .csv file with test instructions, so it is
+        pretty much meaningless.
+      </div>
+    </div>
+  {% endif %}
+
+  {% if not view.test_run.duration %}
+    <div class="panel panel-warning">
+      <div class="panel-heading">Warning</div>
+      <div class="panel-body">
+        This test run hasn't finished yet. A bit of patience, please :-)
+      </div>
+    </div>
+  {% endif %}
+
   <div class="panel panel-default">
     <div class="panel-body">
       <dl>
