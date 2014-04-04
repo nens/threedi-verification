@@ -50,8 +50,10 @@ class TestCase(models.Model):
 
     @cached_property
     def latest_test_run(self):
-        return TestRun.objects.filter(
-            test_case_version__test_case=self)[0]
+        test_runs = TestRun.objects.filter(
+            test_case_version__test_case=self)
+        if test_runs.exists():
+            return test_runs.first()
 
 
 class TestCaseVersion(models.Model):
