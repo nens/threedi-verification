@@ -2,6 +2,18 @@
 {% load staticfiles %}
 
 {% block main-column %}
+
+  {% if not view.test_case.has_csv %}
+    <div class="panel panel-danger">
+      <div class="panel-heading">Watch out!</div>
+      <div class="panel-body">
+        This test case has no .csv file with test instructions, so it is
+        pretty much meaningless.
+      </div>
+    </div>
+  {% endif %}
+
+
   <h1>Test results</h1>
   <table class="table">
     <thead>
