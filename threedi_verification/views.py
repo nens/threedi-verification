@@ -32,6 +32,14 @@ class HomeView(BaseView):
     template_name = 'threedi_verification/home.html'
     subtitle = _("overview")
 
+    @cached_property
+    def latest_library_version(self):
+        return LibraryVersion.objects.first()
+
+    @cached_property
+    def latest_test_runs(self):
+        return TestRun.objects.all()[:5]
+
 
 class LibraryVersionsView(BaseView):
     template_name = 'threedi_verification/library_versions.html'

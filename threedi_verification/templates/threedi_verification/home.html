@@ -4,20 +4,61 @@
 
 {% block main-column %}
 
-  <p>
-    <a class="btn btn-primary btn-lg"
-       href="{% url 'threedi_verification.library_versions' %}">
-      <span class="glyphicon glyphicon-arrow-right"></span>
-      {% trans "Library versions overview" %}
-    </a>
-  </p>
+  <div class="row">
+    <div class="col-md-6">
 
-  <p>
-    <a class="btn btn-primary btn-lg"
-       href="{% url 'threedi_verification.test_cases' %}">
-      <span class="glyphicon glyphicon-arrow-right"></span>
-      {% trans "Test cases overview" %}
-    </a>
-  </p>
+      <p>
+        <a class="btn btn-success btn-lg"
+           href="{% url 'threedi_verification.library_version' pk=view.latest_library_version.pk %}">
+          <span class="glyphicon glyphicon-arrow-right"></span>
+          {% trans "Newest library version results" %}
+        </a>
+      </p>
 
+      <p>
+        <a class="btn btn-primary btn-lg"
+           href="{% url 'threedi_verification.library_versions' %}">
+          <span class="glyphicon glyphicon-arrow-right"></span>
+          {% trans "Library versions overview" %}
+        </a>
+      </p>
+
+      <p>
+        <a class="btn btn-primary btn-lg"
+           href="{% url 'threedi_verification.test_cases' %}">
+          <span class="glyphicon glyphicon-arrow-right"></span>
+          {% trans "Test cases overview" %}
+        </a>
+      </p>
+
+    </div>
+    <div class="col-md-6">
+
+      <div class="panel panel-primary">
+        <div class="panel-heading">
+          <h2 class="panel-title">Latest test runs</h2>
+        </div>
+        <div class="panel-body">
+          <ul>
+            {% for test_run in view.latest_test_runs %}
+              <li>
+                <a href="{% url 'threedi_verification.test_run' pk=test_run.pk %}">
+                  {{ test_run.run_started }}
+                </a><br>
+                <span class="text-muted">
+                  Test case:
+                  {{ test_run.test_case_version.test_case.pretty_name }}
+                </span><br>
+                <span class="text-muted">
+                  Library version:
+                  {{ test_run.library_version.last_modified }}
+                </span>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
 {% endblock %}
