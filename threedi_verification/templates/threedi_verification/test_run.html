@@ -1,0 +1,117 @@
+{% extends "threedi_verification/base.html" %}
+{% load staticfiles %}
+
+{% block main-column %}
+  {# Note: mostly copy/pasted from the old 'mdu.html' template #}
+
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <dl>
+        <dt>Library version</dt>
+        <dd>
+          <a href="{{ view.test_run.library_version.get_absolute_url }}">
+            {{ view.test_run.library_version }}
+          </a>
+        </dd>
+        <dt>Test case</dt>
+        <dd>
+          <a href="{{ view.test_run.test_case_version.test_case.get_absolute_url }}">
+            {{ view.test_run.test_case_version.test_case.pretty_name }}
+          </a>
+        </dd>
+        {% if view.report.index_lines %}
+          <dt>Test explanation</dt>
+          <dd>
+            {% for line in view.report.index_lines %}
+              <div>{{ line }}</div>
+              {% endfor %}
+          </dd>
+        {% endif %}
+      </dl>
+    </div>
+  </div>
+
+  <h2>Test results</h2>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Parameter</th>
+        <th class="text-right">Expected</th>
+        <th class="text-right">Found</th>
+        <th>Margin</th>
+        <th>What</th>
+        <th>Note</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for instruction in view.report.instruction_reports %}
+        <tr>
+          <td>
+            {{ instruction.parameter }}
+          </td>
+          <td class="text-right">
+            {% if instruction.invalid_desired_value %}
+              <span class="wrong">
+                <i class="icon-remove"></i>
+                {{ instruction.invalid_desired_value }}
+              </span>
+            {% else %}
+              {{ instruction.desired }}
+            {% endif %}
+          </td>
+          <td class="text-right">
+            {% if instruction.equal %}
+              <span class="text-success">
+                {{ instruction.found }}
+                <span class="glyphicon glyphicon-ok"></span>
+              </span>
+            {% elif instruction.log %}
+              <span class="text-danger has-tooltip"
+                    title="{{ instruction.shortlog|escape }}">
+                An error occurred
+                <span class="glyphicon glyphicon-remove"></span>
+              </span>
+            {% else %}
+              <span class="text-danger">
+                {{ instruction.found }}
+                <span class="glyphicon glyphicon-remove"></span>
+              </span>
+            {% endif %}
+          </td>
+          <td>
+            {{ instruction.epsilon }}
+            {% if not instruction.margin == None %}
+              ({{ instruction.margin }})
+            {% endif %}
+          </td>
+          <td>
+            {% for comment in instruction.what %}
+              {{ comment }}
+              {% if not loop.latest %}<br />{% endif %}
+            {% endfor %}
+          </td>
+          <td>
+            {{ instruction.title }}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Model parameters</h2>
+  <dl>
+    {% for parameter, value in view.report.model_parameters %}
+      <dt>{{ parameter }}</dt>
+      <dd>{{ value }}</dd>
+    {% endfor %}
+  </dl>
+
+  {% if view.report.csv_contents %}
+    <h2>Test instructions <small>for debug purposes</small></h2>
+    {% for csv_contents in view.report.csv_contents %}
+      <p>This is what Python read from <code>{{ csv_contents.filename }}</code>:</p>
+      <pre>{{ csv_contents.contents }}</pre>
+    {% endfor %}
+  {% endif %}
+
+{% endblock %}

@@ -9,15 +9,22 @@ long_description = '\n\n'.join([
     ])
 
 install_requires = [
-    'setuptools',
-    'netCDF4',
+    'Django >= 1.6',
     'Jinja2',
+    'django-debug-toolbar',
+    'django-extensions',
+    'django-jsonfield',
+    'gunicorn',
     'ipdb',
+    'netCDF4',
+    'setuptools',
+    'south',
     ],
 
 tests_require = [
     'nose',
     'mock',
+    'django-nose',
     'coverage',
     ]
 

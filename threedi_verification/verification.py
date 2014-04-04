@@ -5,6 +5,7 @@ models and to create reports about them.
 """
 from __future__ import print_function
 from collections import defaultdict
+from pprint import pprint
 import ConfigParser
 import argparse
 import csv
@@ -64,6 +65,27 @@ class InstructionReport(object):
     def __cmp__(self, other):
         return cmp(self.id, other.id)
 
+    def as_dict(self):
+        try:
+            found = float(self.found)
+        except:
+            found = str(self.found)
+        equal = bool(self.equal)
+        return dict(
+            log=self.log,
+            id=self.id,
+            parameter=self.parameter,
+            desired=self.desired,
+            margin=self.margin,
+            epsilon=self.epsilon,
+            found=found,
+            equal=equal,
+            title=self.title,
+            invalid_desired_value=self.invalid_desired_value,
+            shortlog=self.shortlog,
+            what=self.what,
+        )
+
     @property
     def shortlog(self):
         if self.log is None:
@@ -92,10 +114,10 @@ class InstructionReport(object):
 
 class MduReport(object):
 
-    def __init__(self):
+    def __init__(self, mdu_filepath):
         self.log = None
         self.successfully_loaded_log = None
-        self.id = None
+        self.id = mdu_filepath
         self.instruction_reports = defaultdict(InstructionReport)
         self.loadable = True
         self.status = None
@@ -105,6 +127,30 @@ class MduReport(object):
 
     def __cmp__(self, other):
         return cmp(self.id, other.id)
+
+    def as_dict(self):
+        # Basically: what ends up in mdu.html as context.
+        result = dict(
+            loadable=self.loadable,
+            short_title=self.short_title,
+            index_lines=self.index_lines,
+            log=self.log,
+            #successfully_loaded_log=self.successfully_loaded_log,
+            successfully_loaded_log=None,  # No verbosity at the moment
+            log_summary=self.log and self.log_summary or None,
+            csv_contents=self.csv_contents,
+            model_parameters=self.model_parameters,
+            instruction_reports=[],
+            )
+        for instruction_report in self.instruction_reports.values():
+            result['instruction_reports'].append(instruction_report.as_dict())
+        return result
+
+    def _propagate_ids(self):
+        for instruction_id in self.instruction_reports:
+            instruction_report = self.instruction_reports[
+                instruction_id]
+            instruction_report.id = instruction_id
 
     @property
     def log_filename(self):
@@ -189,10 +235,7 @@ class Report(object):
         for mdu_id in self.mdu_reports:
             mdu_report = self.mdu_reports[mdu_id]
             mdu_report.id = mdu_id
-            for instruction_id in mdu_report.instruction_reports:
-                instruction_report = mdu_report.instruction_reports[
-                    instruction_id]
-                instruction_report.id = instruction_id
+            mdu_report._propagage_ids()
 
     @property
     def mdus(self):
@@ -239,9 +282,6 @@ class Report(object):
                                 title=mdu.title,
                                 outfile=mdu.details_filename,
                                 context=mdu)
-
-
-report = Report()
 
 
 def _desired_time_index(instruction, instruction_report, dataset):
@@ -636,8 +676,7 @@ def model_parameters(mdu_filepath):
         yield parameter, value
 
 
-def run_simulation(mdu_filepath, verbose=False):
-    mdu_report = report.mdu_reports[mdu_filepath]
+def run_simulation(mdu_filepath, mdu_report=None, verbose=False):
     original_dir = os.getcwd()
     os.chdir(os.path.dirname(mdu_filepath))
     if 'index.txt' in os.listdir('.'):
@@ -711,8 +750,9 @@ def main():
                         help='directory with the tests')
     parser.add_argument('--verbose', default=False, action='store_true')
     args = parser.parse_args()
+    report = Report()
     logging.basicConfig(level=logging.DEBUG)
     for mdu_filepath in mdu_filepaths(args.directory):
-        run_simulation(mdu_filepath, verbose=args.verbose)
+        run_simulation(mdu_filepath, report=report, verbose=args.verbose)
     report.export_reports()
     create_archive_index()

@@ -39,3 +39,5 @@ etc/*.logrotate
 
 testbank
 .DS_Store
+
+bower_components/

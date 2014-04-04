@@ -1,0 +1,93 @@
+{% extends "threedi_verification/base.html" %}
+{% load staticfiles %}
+
+{% block main-column %}
+  <h1>Crashes</h1>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Test case</th>
+        <th>Duration</th>
+        <th>Log summary</th>
+        <th>Log</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for test_run in view.crashed_test_runs %}
+        <tr>
+          <td>
+            <a href="{{ test_run.test_case_version.test_case.get_absolute_url }}">
+              {{ test_run.test_case_version.test_case.pretty_name }}
+            </a>
+          </td>
+          <td>
+            {{ test_run.duration|floatformat }}
+          </td>
+          <td>
+            {{ test_run.report.log_summary|linebreaksbr }}
+          </td>
+          <td>
+            <a href="{% url 'threedi_verification.log' pk=test_run.pk %}">
+              <span class="glyphicon glyphicon-list-alt"
+                    title="Logfile"></span>
+            </a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h1>Test results</h1>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Test case</th>
+        <th>Duration</th>
+        <th>Start date</th>
+        <th>
+          Result<br>
+          <span class="text-muted">(click bar for details)</span>
+        </th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for test_case, test_runs in view.completed_test_runs.items %}
+        {% for test_run in test_runs %}
+          <tr {% if not forloop.first %}class="text-muted"{% endif %}>
+            {% if forloop.first %}
+              <td rowspan="{{ test_runs|length }}">
+                <a href="{{ test_case.get_absolute_url }}">
+                  {{ test_case.pretty_name }}
+                </a>
+              </td>
+            {% endif %}
+            <td>
+              {{ test_run.duration|floatformat }}
+            </td>
+            <td>
+              {{ test_run.run_started }}
+            </td>
+            <td>
+
+              <a href="{% url 'threedi_verification.test_run' pk=test_run.pk %}">
+                <div class="progress">
+                  <div class="progress-bar progress-bar-success"
+                       style="width: {{ test_run.progress_bar_percentage_right }}%;">
+                  </div>
+                  <div class="progress-bar progress-bar-danger"
+                       style="width: {{ test_run.progress_bar_percentage_wrong }}%;">
+                  </div>
+                </div>
+              </a>
+
+            </td>
+          </tr>
+       {% endfor %}
+     {% endfor %}
+
+    </tbody>
+  </table>
+
+{% endblock %}
