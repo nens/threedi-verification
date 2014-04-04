@@ -7,8 +7,6 @@ import itertools
 import logging
 
 from django.core.urlresolvers import reverse
-from django.db.models import Count
-from django.db.models import F
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.functional import cached_property
@@ -17,7 +15,6 @@ from django.views.generic.base import TemplateView
 
 from threedi_verification.models import LibraryVersion
 from threedi_verification.models import TestCase
-from threedi_verification.models import TestCaseVersion
 from threedi_verification.models import TestRun
 
 logger = logging.getLogger(__name__)
@@ -145,7 +142,7 @@ class TestRunView(BaseView):
 
     @cached_property
     def subtitle(self):
-        return 'for %s' % self.test_run.test_case
+        return 'for %s' % self.test_run.test_case_version
 
     @cached_property
     def report(self):
