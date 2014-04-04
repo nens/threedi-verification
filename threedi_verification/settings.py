@@ -9,6 +9,7 @@ BUILDOUT_DIR = os.path.abspath(os.path.join(SETTINGS_DIR, '..'))
 TESTCASES_ROOT = os.path.join(BUILDOUT_DIR, 'testbank')
 STATIC_ROOT = os.path.join(BUILDOUT_DIR, 'var', 'static')
 STATIC_URL = '/static/'
+FORCE_SCRIPT_NAME = 'testresults2/'
 ROOT_URLCONF = 'threedi_verification.urls'
 SECRET_KEY = 'sleutel van het secreet'
 DEBUG = True
