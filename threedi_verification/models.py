@@ -45,6 +45,11 @@ class TestCase(models.Model):
         name = name.rstrip('.mdu')
         return name
 
+    @cached_property
+    def latest_test_run(self):
+        return TestRun.objects.filter(
+            test_case_version__test_case=self)[0]
+
 
 class TestCaseVersion(models.Model):
 
@@ -145,12 +150,16 @@ class TestRun(models.Model):
 
     @cached_property
     def num_wrong(self):
+        if not 'instruction_reports' in self.report:
+            return 0
         return len(
             [ir for ir in self.report['instruction_reports']
              if not ir['equal']])
 
     @cached_property
     def num_right(self):
+        if not 'instruction_reports' in self.report:
+            return 0
         return len(
             [ir for ir in self.report['instruction_reports']
              if ir['equal']])
