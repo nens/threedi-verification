@@ -1,4 +1,5 @@
 import datetime
+import glob
 import logging
 import optparse
 import os
@@ -39,6 +40,9 @@ class Command(BaseCommand):
 
         self.look_at_library()
         self.look_at_test_case()
+        if not self.test_case.has_csv:
+            logger.error("No csv files, aborting.")
+            return
         self.set_up_test_run(force=options['force'])
         if self.test_run is None:
             return
@@ -89,7 +93,9 @@ class Command(BaseCommand):
         if os.path.exists(index_file):
             # Make sure the content is up to date.
             self.test_case.info = open(index_file).readlines()
-            self.test_case.save()
+        self.test_case.has_csv = bool(glob.glob(
+            os.path.join(testdir, '*.csv')))
+        self.test_case.save()
 
     def set_up_test_run(self, force):
         """Set up the storage object for the test that need to be run."""

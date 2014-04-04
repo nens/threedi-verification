@@ -26,6 +26,9 @@ class TestCase(models.Model):
         verbose_name=_("information"),
         blank=True,
         null=True)
+    has_csv = models.BooleanField(
+        default=True,
+        verbose_name=_("has .csv file with instructions"))
 
     class Meta:
         verbose_name = _("test case")
