@@ -48,6 +48,16 @@ MODEL_PARAMETERS = (
 )
 
 
+def unmask(something):
+    """Some numbers come out as numpy masked numbers. Fix that.
+
+    Json barfs on it, that's wy."""
+    try:
+        return float(something)
+    except:
+        return str(something)
+
+
 class InstructionReport(object):
 
     def __init__(self):
@@ -66,24 +76,20 @@ class InstructionReport(object):
         return cmp(self.id, other.id)
 
     def as_dict(self):
-        try:
-            found = float(self.found)
-        except:
-            found = str(self.found)
         equal = bool(self.equal)
         return dict(
             log=self.log,
             id=self.id,
-            parameter=self.parameter,
-            desired=self.desired,
-            margin=self.margin,
-            epsilon=self.epsilon,
-            found=found,
+            parameter=unmask(self.parameter),
+            desired=unmask(self.desired),
+            margin=unmask(self.margin),
+            epsilon=unmask(self.epsilon),
+            found=unmask(self.found),
             equal=equal,
             title=self.title,
-            invalid_desired_value=self.invalid_desired_value,
+            invalid_desired_value=unmask(self.invalid_desired_value),
             shortlog=self.shortlog,
-            what=self.what,
+            what=unmask(self.what),
         )
 
     @property
