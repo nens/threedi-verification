@@ -89,7 +89,7 @@ class InstructionReport(object):
             title=self.title,
             invalid_desired_value=unmask(self.invalid_desired_value),
             shortlog=self.shortlog,
-            what=unmask(self.what),
+            what=self.what,
         )
 
     @property
