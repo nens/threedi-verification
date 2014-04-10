@@ -107,6 +107,12 @@ class Command(BaseCommand):
                 logger.info("Re-running test run because of --force")
                 self.test_run = existing_testruns[0]
                 return
+            elif not existing_testruns[0].duration:
+                logger.info(
+                    "Test run for %s hasn't completed yet, running again",
+                    self.test_case)
+                self.test_run = existing_testruns[0]
+                return
             else:
                 logger.info("Test run for %s has already run earlier",
                             self.test_case)
