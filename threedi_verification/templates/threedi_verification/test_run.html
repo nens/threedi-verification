@@ -57,7 +57,8 @@
         <th>Parameter</th>
         <th class="text-right">Expected</th>
         <th class="text-right">Found</th>
-        <th>Margin</th>
+        <th>Margin allowed</th>
+        <th>Margin found</th>
         <th>What</th>
         <th>Note</th>
       </tr>
@@ -100,7 +101,15 @@
           <td>
             {{ instruction.epsilon }}
             {% if not instruction.margin == None %}
+              <br>
               ({{ instruction.margin }})
+            {% endif %}
+          </td>
+          <td>
+            {% if instruction.epsilon_found %}
+              {{ instruction.epsilon_found }}
+              <br>
+              ({{ instruction.margin_found }})
             {% endif %}
           </td>
           <td>
