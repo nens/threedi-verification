@@ -117,6 +117,18 @@ class InstructionReport(object):
         else:
             return abs(margin)
 
+    @property
+    def epsilon_found(self):
+        if not self.found and not self.desired:
+            return
+        return abs(self.found - self.desired)
+
+    @property
+    def margin_found(self):
+        if not self.epsilon_found:
+            return
+        return abs(self.desired) / self.epsilon_found * 100
+
 
 class MduReport(object):
 
