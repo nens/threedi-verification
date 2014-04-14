@@ -52,6 +52,8 @@ def unmask(something):
     """Some numbers come out as numpy masked numbers. Fix that.
 
     Json barfs on it, that's wy."""
+    if something is None:
+        return None
     try:
         return float(something)
     except:
@@ -90,6 +92,8 @@ class InstructionReport(object):
             invalid_desired_value=self.invalid_desired_value,
             shortlog=self.shortlog,
             what=self.what,
+            epsilon_found=unmask(self.epsilon_found),
+            margin_found=unmask(self.margin_found),
         )
 
     @property
