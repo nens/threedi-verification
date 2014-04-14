@@ -131,7 +131,7 @@ class InstructionReport(object):
     def margin_found(self):
         if not self.epsilon_found:
             return
-        return abs(self.desired) / self.epsilon_found * 100
+        return self.epsilon_found / abs(self.desired) * 100
 
 
 class MduReport(object):
