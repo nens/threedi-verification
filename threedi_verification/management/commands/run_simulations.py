@@ -21,5 +21,7 @@ class Command(BaseCommand):
         for test_case in TestCase.objects.all():
             full_path = os.path.join(testdir, test_case.filename)
             if not os.path.exists(full_path):
+                logger.error("MDU file at %s doesn't exist anymore...",
+                             full_path)
                 continue
             call_command('run_simulation', full_path)
