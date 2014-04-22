@@ -98,7 +98,7 @@ class Command(BaseCommand):
         self.test_case.save()
 
     def set_up_test_run(self, force):
-        """Set up the storage object for the test that need to be run."""
+        """Set up the storage object for the test that needs to be run."""
         existing_testruns = TestRun.objects.filter(
             test_case_version=self.test_case_version,
             library_version=self.library_version)
