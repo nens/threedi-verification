@@ -99,10 +99,12 @@
             {% endif %}
           </td>
           <td>
-            {{ instruction.epsilon }}
-            {% if not instruction.margin == None %}
-              <br>
-              ({{ instruction.margin }})
+            {% if not instruction.epsilon == None %}
+              {{ instruction.epsilon }}
+              {% if not instruction.margin == None %}
+                <br>
+                ({{ instruction.margin }})
+              {% endif %}
             {% endif %}
           </td>
           <td>
