@@ -604,6 +604,7 @@ def check_map(instruction, instruction_report, dataset):
     if desired == 'nan' and found == 'nan':
         instruction_report.equal = True
     else:
+        print("%r" % found)
         instruction_report.equal = (
             abs(desired - found) < instruction_report.epsilon)
     logger.info("Found value %s for parameter %s; desired=%s",
