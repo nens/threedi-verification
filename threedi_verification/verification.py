@@ -111,6 +111,8 @@ class InstructionReport(object):
             return EPSILON
         relative = '%' in self.margin
         margin = self.margin.replace('%', '')
+        if self.desired == 'nan':
+            return
         try:
             margin = float(margin)
         except ValueError:
@@ -125,7 +127,9 @@ class InstructionReport(object):
 
     @property
     def epsilon_found(self):
-        if self.found is None or self.desired is None:
+        if (self.found is None
+            or self.desired is None
+            or self.desired == 'nan'):
             return
         return abs(self.found - self.desired)
 
