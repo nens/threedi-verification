@@ -398,7 +398,10 @@ def check_his(instruction, instruction_report, dataset):
 
     # Expected value
     try:
-        desired = float(instruction['ref'])
+        if instruction['ref'] == 'nan':
+            desired = 'nan'
+        else:
+            desired = float(instruction['ref'])
     except ValueError:
         desired = instruction['ref']
         msg = "Invalid non-float value: %r" % desired
@@ -454,8 +457,11 @@ def check_his(instruction, instruction_report, dataset):
             return
 
         instruction_report.found = found
-        instruction_report.equal = (
-            abs(desired - found) < instruction_report.epsilon)
+        if desired == 'nan' and found == 'nan':
+            instruction_report.equal = True
+        else:
+            instruction_report.equal = (
+                abs(desired - found) < instruction_report.epsilon)
         logger.info("Found value %s for parameter %s; desired=%s",
                     found,
                     parameter_name,
@@ -494,8 +500,11 @@ def check_his(instruction, instruction_report, dataset):
             return
 
         instruction_report.found = found
-        instruction_report.equal = (
-            abs(desired - found) < instruction_report.epsilon)
+        if desired == 'nan' and found == 'nan':
+            instruction_report.equal = True
+        else:
+            instruction_report.equal = (
+                abs(desired - found) < instruction_report.epsilon)
         logger.info("Found value %s for parameter %s; desired=%s",
                     found,
                     parameter_name,
@@ -520,7 +529,10 @@ def check_map(instruction, instruction_report, dataset):
 
     # Expected value
     try:
-        desired = float(instruction['ref'])
+        if instruction['ref'] == 'nan':
+            desired = 'nan'
+        else:
+            desired = float(instruction['ref'])
     except ValueError:
         desired = instruction['ref']
         msg = "Invalid non-float value: %r" % desired
@@ -589,8 +601,11 @@ def check_map(instruction, instruction_report, dataset):
         return
 
     instruction_report.found = found
-    instruction_report.equal = (
-        abs(desired - found) < instruction_report.epsilon)
+    if desired == 'nan' and found == 'nan':
+        instruction_report.equal = True
+    else:
+        instruction_report.equal = (
+            abs(desired - found) < instruction_report.epsilon)
     logger.info("Found value %s for parameter %s; desired=%s",
                 found,
                 parameter_name,
@@ -615,7 +630,10 @@ def check_map_nflow(instruction, instruction_report, dataset):
 
     # Expected value
     try:
-        desired = float(instruction['ref'])
+        if instruction['ref'] == 'nan':
+            desired = 'nan'
+        else:
+            desired = float(instruction['ref'])
     except ValueError:
         desired = instruction['ref']
         msg = "Invalid non-float value: %r" % desired
@@ -659,8 +677,11 @@ def check_map_nflow(instruction, instruction_report, dataset):
         return
 
     instruction_report.found = found
-    instruction_report.equal = (
-        abs(desired - found) < instruction_report.epsilon)
+    if desired == 'nan' and found == 'nan':
+        instruction_report.equal = True
+    else:
+        instruction_report.equal = (
+            abs(desired - found) < instruction_report.epsilon)
     logger.info("Found value %s for parameter %s; desired=%s",
                 found,
                 parameter_name,
