@@ -92,7 +92,7 @@ class Command(BaseCommand):
         index_file = os.path.join(testdir, 'index.txt')
         if os.path.exists(index_file):
             # Make sure the content is up to date.
-            self.test_case.info = open(index_file).readlines()
+            self.test_case.info = open(index_file).read()
         self.test_case.has_csv = bool(glob.glob(
             os.path.join(testdir, '*.csv')))
         self.test_case.save()

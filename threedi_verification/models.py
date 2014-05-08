@@ -47,7 +47,7 @@ class TestCase(models.Model):
         name = self.filename.split('/')[-1]
         name = name.rstrip('.mdu')
         if self.info:
-            first_line = self.info[0].strip()
+            first_line = self.info.split('\n')[0].strip()
             return "%s (%s)" % (first_line, name)
         else:
             return name

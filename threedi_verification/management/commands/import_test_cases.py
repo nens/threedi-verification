@@ -34,5 +34,5 @@ class Command(BaseCommand):
                 logger.info("Found new testcase: %s", test_case)
                 index_file = os.path.join(dirpath, 'index.txt')
                 if os.path.exists(index_file):
-                    test_case.info = open(index_file).readlines()
+                    test_case.info = open(index_file).read()
                     test_case.save()
