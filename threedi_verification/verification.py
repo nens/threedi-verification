@@ -601,15 +601,11 @@ def check_map(instruction, instruction_report, dataset):
         return
 
     instruction_report.found = found
-    if desired == 'nan' and unmask(found) == 'nan':
+    if desired == 'nan' and type(found) == np.ma.core.MaskedConstant:
         instruction_report.equal = True
     else:
-        try:
-            instruction_report.equal = (
-                abs(desired - found) < instruction_report.epsilon)
-        except:
-            # Temp debug
-            import pdb;pdb.set_trace()
+        instruction_report.equal = (
+            abs(desired - found) < instruction_report.epsilon)
     logger.info("Found value %s for parameter %s; desired=%s",
                 found,
                 parameter_name,
