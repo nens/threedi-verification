@@ -457,7 +457,7 @@ def check_his(instruction, instruction_report, dataset):
             return
 
         instruction_report.found = found
-        if desired == 'nan' and found == 'nan':
+        if desired == 'nan' and type(found) == np.ma.core.MaskedConstant:
             instruction_report.equal = True
         else:
             instruction_report.equal = (
@@ -500,7 +500,7 @@ def check_his(instruction, instruction_report, dataset):
             return
 
         instruction_report.found = found
-        if desired == 'nan' and found == 'nan':
+        if desired == 'nan' and type(found) == np.ma.core.MaskedConstant:
             instruction_report.equal = True
         else:
             instruction_report.equal = (
@@ -677,7 +677,7 @@ def check_map_nflow(instruction, instruction_report, dataset):
         return
 
     instruction_report.found = found
-    if desired == 'nan' and found == 'nan':
+    if desired == 'nan' and type(found) == np.ma.core.MaskedConstant:
         instruction_report.equal = True
     else:
         instruction_report.equal = (
