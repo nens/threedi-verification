@@ -44,6 +44,8 @@
                   View logfile
                 </a>
               </div>
+            {% elif not test_case.latest_test_run %}
+              <div>No test has been run yet</div>
             {% else %}
               <a href="{% url 'threedi_verification.test_run' pk=test_case.latest_test_run.pk %}">
                 <div class="progress">
