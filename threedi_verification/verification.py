@@ -119,7 +119,7 @@ class InstructionReport(object):
         if relative:
             if self.found is None:  # Corner case.
                 return 0
-            return abs(self.found) / 100 * margin
+            return abs(self.desired) / 100 * margin
         else:
             return abs(margin)
 
@@ -135,7 +135,7 @@ class InstructionReport(object):
             return
         if not self.found:  # Division by zero.
             return
-        return self.epsilon_found / abs(self.found) * 100
+        return self.epsilon_found / abs(self.desired) * 100
 
 
 class MduReport(object):
