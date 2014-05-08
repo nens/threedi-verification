@@ -601,7 +601,7 @@ def check_map(instruction, instruction_report, dataset):
         return
 
     instruction_report.found = found
-    if desired == 'nan' and found == 'nan':
+    if desired == 'nan' and unmask(found) == 'nan':
         instruction_report.equal = True
     else:
         print("%r" % found)
