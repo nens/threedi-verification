@@ -117,6 +117,8 @@ class InstructionReport(object):
             logger.exception("Wrong 'margin' value: %s", margin)
             return EPSILON
         if relative:
+            if self.found is None:  # Corner case.
+                return 0
             return abs(self.found) / 100 * margin
         else:
             return abs(margin)
