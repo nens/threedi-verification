@@ -46,7 +46,11 @@ class TestCase(models.Model):
     def pretty_name(self):
         name = self.filename.split('/')[-1]
         name = name.rstrip('.mdu')
-        return name
+        if self.info:
+            first_line = self.info.split('\n')[0].strip()
+            return "%s (%s)" % (first_line, name)
+        else:
+            return name
 
     @cached_property
     def latest_test_run(self):
