@@ -461,8 +461,11 @@ def check_his(instruction, instruction_report, dataset):
             return
 
         instruction_report.found = found
-        if desired == 'nan' and type(found) == np.ma.core.MaskedConstant:
-            instruction_report.equal = True
+        if desired == 'nan':
+            if type(found) == np.ma.core.MaskedConstant:
+                instruction_report.equal = True
+            else:
+                instruction_report.equal = False
         else:
             instruction_report.equal = (
                 abs(desired - found) < instruction_report.epsilon)
@@ -504,8 +507,11 @@ def check_his(instruction, instruction_report, dataset):
             return
 
         instruction_report.found = found
-        if desired == 'nan' and type(found) == np.ma.core.MaskedConstant:
-            instruction_report.equal = True
+        if desired == 'nan':
+            if type(found) == np.ma.core.MaskedConstant:
+                instruction_report.equal = True
+            else:
+                instruction_report.equal = False
         else:
             instruction_report.equal = (
                 abs(desired - found) < instruction_report.epsilon)
@@ -605,8 +611,11 @@ def check_map(instruction, instruction_report, dataset):
         return
 
     instruction_report.found = found
-    if desired == 'nan' and type(found) == np.ma.core.MaskedConstant:
-        instruction_report.equal = True
+    if desired == 'nan':
+        if type(found) == np.ma.core.MaskedConstant:
+            instruction_report.equal = True
+        else:
+            instruction_report.equal = False
     else:
         instruction_report.equal = (
             abs(desired - found) < instruction_report.epsilon)
@@ -681,8 +690,11 @@ def check_map_nflow(instruction, instruction_report, dataset):
         return
 
     instruction_report.found = found
-    if desired == 'nan' and type(found) == np.ma.core.MaskedConstant:
-        instruction_report.equal = True
+    if desired == 'nan':
+        if type(found) == np.ma.core.MaskedConstant:
+            instruction_report.equal = True
+        else:
+            instruction_report.equal = False
     else:
         instruction_report.equal = (
             abs(desired - found) < instruction_report.epsilon)
