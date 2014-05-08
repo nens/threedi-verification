@@ -29,6 +29,9 @@ class TestCase(models.Model):
     has_csv = models.BooleanField(
         default=True,
         verbose_name=_("has .csv file with instructions"))
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name=_("is active: directory still exists"))
 
     class Meta:
         verbose_name = _("test case")
