@@ -104,7 +104,7 @@ class TestCasesView(BaseView):
         return reverse('threedi_verification.home')
 
     def test_cases(self):
-        return TestCase.objects.all()
+        return TestCase.objects.filter(is_active=True)
 
 
 class TestCaseView(BaseView):
