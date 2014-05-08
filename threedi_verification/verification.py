@@ -604,9 +604,12 @@ def check_map(instruction, instruction_report, dataset):
     if desired == 'nan' and unmask(found) == 'nan':
         instruction_report.equal = True
     else:
-        print("%r" % found)
-        instruction_report.equal = (
-            abs(desired - found) < instruction_report.epsilon)
+        try:
+            instruction_report.equal = (
+                abs(desired - found) < instruction_report.epsilon)
+        except:
+            # Temp debug
+            import pdb;pdb.set_trace()
     logger.info("Found value %s for parameter %s; desired=%s",
                 found,
                 parameter_name,
