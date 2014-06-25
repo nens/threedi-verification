@@ -2,7 +2,7 @@ Changelog of threedi-verification
 ===================================================
 
 
-0.2 (unreleased)
+0.2 (2014-06-25)
 ----------------
 
 - We're slightly less strict in time checking. We only warn in the logfile,
