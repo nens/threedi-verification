@@ -13,6 +13,10 @@ Changelog of threedi-verification
 - Looking at 'margin' parameter in csv. Can be both absolute and relative
   (indicated by a % sign).
 
+- Fix for NaN results.
+
+- Re-worked the interface to be a django app.
+
 
 0.1 (2013-07-01)
 ----------------
