@@ -2,6 +2,12 @@ Changelog of threedi-verification
 ===================================================
 
 
+0.3 (unreleased)
+----------------
+
+- Nothing changed yet.
+
+
 0.2 (2014-06-25)
 ----------------
 
