@@ -28,16 +28,24 @@ the moment, but that's just because it expects an
 
 It also requires a mercurial (``hg``) to be installed.
 
+A django site shows the tests results, so the regular django setup is needed::
+
+    $ bin/django syncdb
+    $ bin/django migrate
+    $ bin/django runserver  # To run the site.
+
 Run ``./update_testbank.sh`` to get the current set of test cases in
 the ``testbank/`` subdirectory. (You might need to enable the
 largefile mercurial extension in your ``~/.hgrc``). After that::
 
-    $ bin/verify testbank
+    $ bin/django import_test_cases
+    $ bin/django run_simulations
 
-Or in case you want to test with a smaller set (especially when developing),
-just specify a directory lower down in the hierarchy:
+Or in case you want to test with a specific testcase (especially when
+developing), use the ``run_simulation`` (without an ``s``) command and pass in
+an mdu file::
 
-    $ bin/verify testbank/2_03
+    $ bin/django run_simulation testbank/4_09/4_09_07/4_09_07.mdu
 
 This generates some html files into the ``var/html/`` directory.
 The html output is also generated on jenkins:
