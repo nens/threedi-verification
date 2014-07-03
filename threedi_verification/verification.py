@@ -5,7 +5,6 @@ models and to create reports about them.
 """
 from __future__ import print_function
 from collections import defaultdict
-from pprint import pprint
 import ConfigParser
 import argparse
 import csv
@@ -165,7 +164,6 @@ class MduReport(object):
             short_title=self.short_title,
             index_lines=self.index_lines,
             log=self.log,
-            #successfully_loaded_log=self.successfully_loaded_log,
             successfully_loaded_log=None,  # No verbosity at the moment
             log_summary=self.log and self.log_summary or None,
             csv_contents=self.csv_contents,
@@ -392,7 +390,7 @@ def check_his(instruction, instruction_report, dataset):
     # Parameter.
     parameter_name = instruction['param']
     instruction_report.parameter = parameter_name
-    if not parameter_name in dataset.variables:
+    if parameter_name not in dataset.variables:
         msg = "Parameter '%s' not found in %s" % (
             parameter_name,
             dataset.variables.keys())
@@ -424,7 +422,7 @@ def check_his(instruction, instruction_report, dataset):
         station_name = instruction['obs_name']
 
         # Special case, error that occurs in practice
-        if not 'station_name' in dataset.variables:
+        if 'station_name' not in dataset.variables:
             msg = ("Variable 'station_name' not found in the netcdf. " +
                    "Wrong kind of _his.csv check")
             instruction_report.log = msg
@@ -449,7 +447,8 @@ def check_his(instruction, instruction_report, dataset):
         logger.debug(msg)
 
         # Time
-        desired_time_index = _desired_time_index(instruction, instruction_report,
+        desired_time_index = _desired_time_index(instruction,
+                                                 instruction_report,
                                                  dataset)
         if desired_time_index is None:
             return
@@ -495,7 +494,8 @@ def check_his(instruction, instruction_report, dataset):
         logger.debug(msg)
 
         # Time
-        desired_time_index = _desired_time_index(instruction, instruction_report,
+        desired_time_index = _desired_time_index(instruction,
+                                                 instruction_report,
                                                  dataset)
         if desired_time_index is None:
             return
@@ -529,7 +529,7 @@ def check_map(instruction, instruction_report, dataset):
     # Parameter
     parameter_name = instruction['param']
     instruction_report.parameter = parameter_name
-    if not parameter_name in dataset.variables:
+    if parameter_name not in dataset.variables:
         msg = "Parameter '%s' not found in %s" % (
             parameter_name,
             dataset.variables.keys())
@@ -633,7 +633,7 @@ def check_map_nflow(instruction, instruction_report, dataset):
     # Parameter.
     parameter_name = instruction['param']
     instruction_report.parameter = parameter_name
-    if not parameter_name in dataset.variables:
+    if parameter_name not in dataset.variables:
         msg = "Parameter '%s' not found in %s" % (
             parameter_name,
             dataset.variables.keys())
@@ -739,12 +739,32 @@ def model_parameters(mdu_filepath):
         yield parameter, value
 
 
+def check_mdu_file(mdu_filepath):
+    for line in open(mdu_filepath):
+        if line.startswith('NTimesteps'):
+            if '20160' in line:
+                msg = "Wrong default 20160 NTimesteps value in %s:\n%s" % (
+                    mdu_filepath, line)
+                return msg
+
+
 def run_simulation(mdu_filepath, mdu_report=None, verbose=False):
     original_dir = os.getcwd()
     os.chdir(os.path.dirname(mdu_filepath))
     if 'index.txt' in os.listdir('.'):
         mdu_report.index_lines = open('index.txt').readlines()
     logger.debug("Loading %s...", mdu_filepath)
+
+    mdu_error = check_mdu_file(mdu_filepath)
+    if mdu_error:
+        # Temp check for faulty default NTimesteps value
+        logger.error(mdu_error)
+        mdu_report.loadable = False
+        mdu_report.log = mdu_error
+        mdu_report.status = SOME_ERROR
+        os.chdir(original_dir)
+        return
+
     cmd = '/opt/3di/bin/subgridf90 %s --autostartstop --nodisplay' % os.path.basename(
         mdu_filepath)
     # ^^^ TODO: hardcoded.
