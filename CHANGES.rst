@@ -5,7 +5,7 @@ Changelog of threedi-verification
 0.3 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Point update_testbank.sh script to production model databank (hg.lizard.net).
 
 
 0.2 (2014-06-25)
