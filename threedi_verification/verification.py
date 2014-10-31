@@ -765,9 +765,13 @@ def run_simulation(mdu_filepath, mdu_report=None, verbose=False):
         os.chdir(original_dir)
         return
 
-    cmd = '/opt/3di/bin/subgridf90 %s --autostartstop --nodisplay' % os.path.basename(
-        mdu_filepath)
-    # ^^^ TODO: hardcoded.
+    # cmd = '/opt/3di/bin/subgridf90 %s --autostartstop --nodisplay' % os.path.basename(
+    #     mdu_filepath)
+    # ^^^ Direct subgrid executable call
+    # Below: new via-the-library call
+    buildout_dir = original_dir
+    subgridpy = os.path.join(buildout_dir, 'bin', 'subgridpy')
+    cmd = '%s %s' % (subgridpy, os.path.basename(mdu_filepath))
     logger.debug("Running %s", cmd)
     exit_code, output = system(cmd)
     last_output = ''.join(output.split('\n')[-2:]).lower()
