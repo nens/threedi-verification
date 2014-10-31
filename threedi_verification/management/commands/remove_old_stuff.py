@@ -21,7 +21,8 @@ class Command(BaseCommand):
     def remove_old_test_results(self):
         now = datetime.datetime.now()
         month_ago = now - datetime.timedelta(days=30)
-        number_of_old_test_runs = TestRun.objects.filter(run_started__lt=month_ago).count()
-        print(number_of_old_test_runs)
-        # for test_run in old_test_runs:
-        #     print(test_run)
+        old_test_runs = TestRun.objects.filter(run_started__lt=month_ago)[:100]
+        # Max 100 as zapping all of them takes forever.
+        for test_run in old_test_runs:
+            logger.info("Removing %s", test_run)
+            test_run.delete()
