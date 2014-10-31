@@ -769,7 +769,7 @@ def run_simulation(mdu_filepath, mdu_report=None, verbose=False):
     #     mdu_filepath)
     # ^^^ Direct subgrid executable call
     # Below: new via-the-library call
-    buildout_dir = original_dir
+    buildout_dir = os.path.join(original_dir, '..')
     subgridpy = os.path.join(buildout_dir, 'bin', 'subgridpy')
     cmd = '%s %s' % (subgridpy, os.path.basename(mdu_filepath))
     logger.debug("Running %s", cmd)
