@@ -157,7 +157,7 @@
       {{ test_run.report.log_summary|linebreaksbr }}
     </div>
     <div>
-      <a href="{% url 'threedi_verification.log' pk=test_run.pk %}">
+      <a href="{% url 'threedi_verification.log' pk=view.test_run.pk %}">
         <span class="glyphicon glyphicon-list-alt"></span>
         View logfile
       </a>
