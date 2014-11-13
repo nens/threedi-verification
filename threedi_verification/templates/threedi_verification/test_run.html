@@ -50,91 +50,95 @@
     </div>
   </div>
 
-  <h2>Test results</h2>
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Parameter</th>
-        <th class="text-right">Expected</th>
-        <th class="text-right">Found</th>
-        <th>Margin allowed</th>
-        <th>Margin found</th>
-        <th>What</th>
-        <th>Note</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for instruction in view.report.instruction_reports %}
+  {% if view.report.instruction_reports %}
+    <h2>Test results</h2>
+    <table class="table table-striped">
+      <thead>
         <tr>
-          <td>
-            {{ instruction.parameter }}
-          </td>
-          <td class="text-right">
-            {% if instruction.invalid_desired_value %}
-              <span class="wrong">
-                <i class="icon-remove"></i>
-                {{ instruction.invalid_desired_value }}
-              </span>
-            {% else %}
-              {{ instruction.desired }}
-            {% endif %}
-          </td>
-          <td class="text-right">
-            {% if instruction.equal %}
-              <span class="text-success">
-                {{ instruction.found }}
-                <span class="glyphicon glyphicon-ok"></span>
-              </span>
-            {% elif instruction.log %}
-              <span class="text-danger has-tooltip"
-                    title="{{ instruction.shortlog|escape }}">
-                An error occurred
-                <span class="glyphicon glyphicon-remove"></span>
-              </span>
-            {% else %}
-              <span class="text-danger">
-                {{ instruction.found }}
-                <span class="glyphicon glyphicon-remove"></span>
-              </span>
-            {% endif %}
-          </td>
-          <td>
-            {% if not instruction.epsilon == None %}
-              {{ instruction.epsilon }}
-              {% if not instruction.margin == None %}
-                <br>
-                ({{ instruction.margin }})
-              {% endif %}
-            {% endif %}
-          </td>
-          <td>
-            {% if instruction.epsilon_found %}
-              {{ instruction.epsilon_found }}
-              <br>
-              ({{ instruction.margin_found|floatformat:2 }}%)
-            {% endif %}
-          </td>
-          <td>
-            {% for comment in instruction.what %}
-              {{ comment }}
-              {% if not loop.latest %}<br />{% endif %}
-            {% endfor %}
-          </td>
-          <td>
-            {{ instruction.title }}
-          </td>
+          <th>Parameter</th>
+          <th class="text-right">Expected</th>
+          <th class="text-right">Found</th>
+          <th>Margin allowed</th>
+          <th>Margin found</th>
+          <th>What</th>
+          <th>Note</th>
         </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {% for instruction in view.report.instruction_reports %}
+          <tr>
+            <td>
+              {{ instruction.parameter }}
+            </td>
+            <td class="text-right">
+              {% if instruction.invalid_desired_value %}
+                <span class="wrong">
+                  <i class="icon-remove"></i>
+                  {{ instruction.invalid_desired_value }}
+                </span>
+              {% else %}
+                {{ instruction.desired }}
+              {% endif %}
+            </td>
+            <td class="text-right">
+              {% if instruction.equal %}
+                <span class="text-success">
+                  {{ instruction.found }}
+                  <span class="glyphicon glyphicon-ok"></span>
+                </span>
+              {% elif instruction.log %}
+                <span class="text-danger has-tooltip"
+                      title="{{ instruction.shortlog|escape }}">
+                  An error occurred
+                  <span class="glyphicon glyphicon-remove"></span>
+                </span>
+              {% else %}
+                <span class="text-danger">
+                  {{ instruction.found }}
+                  <span class="glyphicon glyphicon-remove"></span>
+                </span>
+              {% endif %}
+            </td>
+            <td>
+              {% if not instruction.epsilon == None %}
+                {{ instruction.epsilon }}
+                {% if not instruction.margin == None %}
+                  <br>
+                  ({{ instruction.margin }})
+                {% endif %}
+              {% endif %}
+            </td>
+            <td>
+              {% if instruction.epsilon_found %}
+                {{ instruction.epsilon_found }}
+                <br>
+                ({{ instruction.margin_found|floatformat:2 }}%)
+              {% endif %}
+            </td>
+            <td>
+              {% for comment in instruction.what %}
+                {{ comment }}
+                {% if not loop.latest %}<br />{% endif %}
+              {% endfor %}
+            </td>
+            <td>
+              {{ instruction.title }}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
 
-  <h2>Model parameters</h2>
-  <dl>
-    {% for parameter, value in view.report.model_parameters %}
-      <dt>{{ parameter }}</dt>
-      <dd>{{ value }}</dd>
-    {% endfor %}
-  </dl>
+  {% if view.report.model_parameters %}
+    <h2>Model parameters</h2>
+    <dl>
+      {% for parameter, value in view.report.model_parameters %}
+        <dt>{{ parameter }}</dt>
+        <dd>{{ value }}</dd>
+      {% endfor %}
+    </dl>
+  {% endif %}
 
   {% if view.report.csv_contents %}
     <h2>Test instructions <small>for debug purposes</small></h2>
@@ -143,5 +147,22 @@
       <pre>{{ csv_contents.contents }}</pre>
     {% endfor %}
   {% endif %}
+
+  {% if view.test_run.has_crashed %}
+    <div class="pull-left text-danger"
+         style="font-size: 600%;">
+      <span class="glyphicon glyphicon-remove"></span>
+    </div>
+    <div>
+      {{ test_run.report.log_summary|linebreaksbr }}
+    </div>
+    <div>
+      <a href="{% url 'threedi_verification.log' pk=test_run.pk %}">
+        <span class="glyphicon glyphicon-list-alt"></span>
+        View logfile
+      </a>
+    </div>
+  {% endif %}
+
 
 {% endblock %}
