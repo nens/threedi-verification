@@ -773,7 +773,8 @@ def run_simulation(mdu_filepath, mdu_report=None, verbose=False):
     kill_after_timeout_command = "timeout 5m"
     #subgridpy = os.path.join(buildout_dir, 'bin', 'subgridpy')
     subgridpy = os.path.join(buildout_dir, 'bin', 'simplesubgrid')
-    cmd = '%s %s --verbose %s' % (kill_after_timeout_command,
+    # Add --verbose when using subgridpy
+    cmd = '%s %s %s' % (kill_after_timeout_command,
                                   subgridpy,
                                   os.path.basename(mdu_filepath))
     logger.debug("Running %s", cmd)
