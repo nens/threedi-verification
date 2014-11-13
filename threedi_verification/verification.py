@@ -770,13 +770,10 @@ def run_simulation(mdu_filepath, mdu_report=None, verbose=False):
     # ^^^ Direct subgrid executable call
     # Below: new via-the-library call
     buildout_dir = original_dir
-    kill_after_timeout_command = "timeout 5m"
+    # kill_after_timeout_command = "timeout 5m"
     #subgridpy = os.path.join(buildout_dir, 'bin', 'subgridpy')
     subgridpy = os.path.join(buildout_dir, 'bin', 'simplesubgrid')
-    # Add --verbose when using subgridpy
-    cmd = '%s %s %s' % (kill_after_timeout_command,
-                                  subgridpy,
-                                  os.path.basename(mdu_filepath))
+    cmd = '%s %s' % (subgridpy, os.path.basename(mdu_filepath))
     logger.debug("Running %s", cmd)
     exit_code, output = system(cmd)
     last_output = ''.join(output.split('\n')[-2:]).lower()
