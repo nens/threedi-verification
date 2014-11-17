@@ -837,11 +837,16 @@ def main():
                         nargs='?',
                         default='.',
                         help='directory with the tests')
+    parser.add_argument('testcase',
+                        default=None,
+                        help="testcase to run (like 4_09_07)")
     parser.add_argument('--verbose', default=False, action='store_true')
     args = parser.parse_args()
     report = Report()
     logging.basicConfig(level=logging.DEBUG)
     for mdu_filepath in mdu_filepaths(args.directory):
+        if args.testcase and (args.testcase not in mdu_filepath):
+            continue
         run_simulation(mdu_filepath, report=report, verbose=args.verbose)
     report.export_reports()
     create_archive_index()
