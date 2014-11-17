@@ -847,6 +847,6 @@ def main():
     for mdu_filepath in mdu_filepaths(args.directory):
         if args.testcase and (args.testcase not in mdu_filepath):
             continue
-        run_simulation(mdu_filepath, report=report, verbose=args.verbose)
+        run_simulation(mdu_filepath, mdu_report=report, verbose=args.verbose)
     report.export_reports()
     create_archive_index()
