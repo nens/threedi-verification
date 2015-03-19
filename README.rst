@@ -17,6 +17,11 @@ together check the subgrid fortran library. What it does:
 
 - Record the results and generate html pages with the results.
 
+Installation
+------------
+
+TODO
+
 
 Test cases
 ----------
