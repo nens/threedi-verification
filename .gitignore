@@ -43,3 +43,7 @@ testbank
 bower_components/
 
 buildout.cfg
+
+# Vagrant
+Vagrantfile
+.vagrant*
