@@ -30,6 +30,21 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Django application
   config.vm.network :forwarded_port, guest: 9000, host: 9002
 
+  # Need to do an apt-get update first, otherwise ansible fails to run
+  config.vm.provision :shell, inline: 'sudo apt-get update && apt-get install python-apt -y'
+
+  # Enable provisioning with ansible, provide the playbook path and the
+  # inventory file
+  # TODO: use your own inframan/ansible/provision.yml path here
+  config.vm.provision :ansible do |ansible|
+    ansible.playbook = '/home/jackieleng/git/inframan/ansible/provision.yml'
+    ansible.inventory_path = '/home/jackieleng/git/threedi-verification/deploy/dev'
+    ansible.limit = 'dev'
+    ansible.extra_vars = {
+      build_user: 'vagrant'
+    }
+  end
+
   # Share an additional folder to the guest VM. The first argument is
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
