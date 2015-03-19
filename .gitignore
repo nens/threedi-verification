@@ -47,3 +47,6 @@ buildout.cfg
 # Vagrant
 Vagrantfile
 .vagrant*
+
+# Ansible
+dev
