@@ -10,6 +10,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # options are documented and commented below. For a complete reference,
   # please see the online documentation at vagrantup.com.
 
+  # Vagrant 1.7+ will generate new private keys when you start up your box (check it with
+  # vagrant ssh-config). These settings will let Vagrant come back to pre-1.7 behavior.
+  config.ssh.insert_key = false
+  config.ssh.private_key_path = File.expand_path('~/.vagrant.d/insecure_private_key')
+
   # Every Vagrant virtual environment requires a box to build off of.
   config.vm.box = "fgrehm/precise64-lxc"
 

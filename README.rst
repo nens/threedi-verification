@@ -1,5 +1,5 @@
-threedi-verification
-==========================================
+threedi-verification for Flow library
+===========================================
 
 This program tests a directory structure of mdu/csv files that all
 together check the subgrid fortran library. What it does:
@@ -17,10 +17,21 @@ together check the subgrid fortran library. What it does:
 
 - Record the results and generate html pages with the results.
 
+
 Installation
 ------------
 
-TODO
+Setup Vagrant box:
+
+- Create a copy of the example Vagrantfile and dev inventory file (rename them
+  appropriately) and configure the contents to your needs.
+
+- Do a vagrant up and vagrant provision.
+
+- Once your vagrant box is running you can run buildout::
+
+    $ python bootstrap.py
+    $ bin/buildout
 
 
 Test cases
