@@ -13,15 +13,26 @@ import jsonfield
 
 logger = logging.getLogger(__name__)
 
+SUBGRID = 'SUBG'
+FLOW = 'FLOW'
+LIBRARIES = (
+    (SUBGRID, 'Subgrid'),
+    (FLOW, 'Flow'),
+)
+
 
 class TestCase(models.Model):
 
     filename = models.CharField(
         verbose_name=_("filename"),
         unique=True,
-        help_text=_(
-            "MDU filename, including path, inside the 'testbank' directory"),
+        help_text=_("Filename (mdu or input), including path, inside the "
+                    " 'testbank' directory"),
         max_length=255)
+    library = models.CharField(
+        max_length=4,
+        choices=LIBRARIES,
+        default=SUBGRID)
     info = models.TextField(
         verbose_name=_("information"),
         blank=True,
@@ -48,7 +59,8 @@ class TestCase(models.Model):
     @cached_property
     def pretty_name(self):
         name = self.filename.split('/')[-1]
-        name = name.rstrip('.mdu')
+        if self.library == SUBGRID:
+            name = name.rstrip('.mdu')
         if self.info:
             first_line = self.info.split('\n')[0].strip()
             return "%s (%s)" % (first_line, name)
@@ -89,20 +101,25 @@ class TestCaseVersion(models.Model):
 
 class LibraryVersion(models.Model):
 
+    library = models.CharField(
+        max_length=4,
+        choices=LIBRARIES,
+        default=SUBGRID)
     last_modified = models.DateTimeField(
         unique=True,
         verbose_name=_("last modified"))
     num_test_cases = models.IntegerField(
-        default = 0,
+        default=0,
         verbose_name=_("number of test cases when library was first found"))
 
     class Meta:
-        verbose_name = _("library")
-        verbose_name_plural = _("libraries")
+        verbose_name = _("library version")
+        verbose_name_plural = _("library versions")
         ordering = ['-last_modified']
 
     def __unicode__(self):
-        return _("library version of %s") % self.last_modified
+        return _("%s library version of %s") % (self.library,
+                                                self.last_modified)
 
     def get_absolute_url(self):
         return reverse('threedi_verification.library_version',
@@ -123,7 +140,7 @@ class LibraryVersion(models.Model):
         # This one probably needs caching.
         return range(len([test_run for test_run in self.test_runs.filter(
             test_case_version__test_case__has_csv=True)
-                          if test_run.has_crashed]))
+            if test_run.has_crashed]))
 
 
 class TestRun(models.Model):
@@ -163,7 +180,7 @@ class TestRun(models.Model):
 
     @cached_property
     def num_wrong(self):
-        if not 'instruction_reports' in self.report:
+        if 'instruction_reports' not in self.report:
             return 0
         return len(
             [ir for ir in self.report['instruction_reports']
@@ -171,7 +188,7 @@ class TestRun(models.Model):
 
     @cached_property
     def num_right(self):
-        if not 'instruction_reports' in self.report:
+        if 'instruction_reports' not in self.report:
             return 0
         return len(
             [ir for ir in self.report['instruction_reports']
