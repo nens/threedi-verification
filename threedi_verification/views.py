@@ -16,6 +16,7 @@ from django.views.generic.base import TemplateView
 from threedi_verification.models import LibraryVersion
 from threedi_verification.models import TestCase
 from threedi_verification.models import TestRun
+from threedi_verification.models import LIBRARIES
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +71,9 @@ class LibraryVersionView(BaseView):
 
     @cached_property
     def subtitle(self):
-        return 'from %s' % self.library_version.last_modified
+        return 'from %s using %s' % (
+            self.library_version.last_modified,
+            dict(LIBRARIES)[self.library_version.library])
 
     @cached_property
     def all_test_runs(self):
