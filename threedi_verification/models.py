@@ -13,6 +13,7 @@ import jsonfield
 
 logger = logging.getLogger(__name__)
 
+# four letters max
 SUBGRID = 'SUBG'
 FLOW = 'FLOW'
 LIBRARIES = (
@@ -118,7 +119,7 @@ class LibraryVersion(models.Model):
         ordering = ['-last_modified']
 
     def __unicode__(self):
-        return _("%s library version of %s") % (self.library,
+        return _("%s library version of %s") % (dict(LIBRARIES)[self.library],
                                                 self.last_modified)
 
     def get_absolute_url(self):
