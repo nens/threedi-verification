@@ -50,3 +50,6 @@ Vagrantfile
 
 # Ansible
 dev
+
+# python flow log
+pyflow.log

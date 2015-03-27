@@ -748,6 +748,55 @@ def check_mdu_file(mdu_filepath):
                 return msg
 
 
+def run_flow_simulation(model_dir, mdu_report=None, verbose=False):
+    """
+    Run simulation using the flow lib
+
+    Params:
+        input_dir: path to the model dir
+    """
+    original_dir = os.getcwd()
+    os.chdir(model_dir)
+    # os.chdir("..")
+    if 'index.txt' in os.listdir('.'):
+        mdu_report.index_lines = open('index.txt').readlines()
+    logger.debug("Loading %s...", model_dir)
+    buildout_dir = original_dir
+
+    pyflow = os.path.join(buildout_dir, 'bin', 'pyflow')
+    cmd = '%s %s -u -m' % (pyflow, os.path.abspath(model_dir))
+    logger.debug("Running %s", cmd)
+    exit_code, output = system(cmd)
+    last_output = ''.join(output.split('\n')[-2:]).lower()
+
+    if verbose:
+        logger.info(output)
+    if exit_code or ('error' in last_output
+                     and 'quitting' in last_output):
+        logger.error("Loading failed: %s", model_dir)
+        mdu_report.loadable = False
+        mdu_report.log = output
+        if 'Segmentation fault' in output:
+            mdu_report.status = CRASHED
+        else:
+            mdu_report.status = SOME_ERROR
+    else:
+        mdu_report.status = LOADED
+        logger.info("Successfully loaded: %s", model_dir)
+        mdu_report.successfully_loaded_log = output
+        mdu_report.model_parameters = list(model_parameters(model_dir))
+        csv_filenames = [f for f in os.listdir('.') if f.endswith('.csv')]
+        for csv_filename in csv_filenames:
+            logger.info("Reading instructions from %s", csv_filename)
+            check_csv(csv_filename, mdu_report=mdu_report)
+
+    # Cleanup: zap *.nc files.
+    for nc in [f for f in os.listdir('.') if f.endswith('.nc')]:
+        os.remove(nc)
+
+    os.chdir(original_dir)
+
+
 def run_simulation(mdu_filepath, mdu_report=None, verbose=False):
     original_dir = os.getcwd()
     os.chdir(os.path.dirname(mdu_filepath))

@@ -17,6 +17,7 @@ install_requires = [
     'gunicorn',
     'ipdb',
     'netCDF4',
+    'python-flow',
     'python-subgrid',
     'setuptools',
     'south',

@@ -13,7 +13,7 @@ import jsonfield
 
 logger = logging.getLogger(__name__)
 
-# four letters max
+# four characters max
 SUBGRID = 'SUBG'
 FLOW = 'FLOW'
 LIBRARIES = (
