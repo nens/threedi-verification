@@ -70,7 +70,7 @@ class Command(BaseCommand):
 
         relative_path = os.path.relpath(self.full_path,
                                         settings.TESTCASES_ROOT)
-        self.test_case = TestCase.objects.get(filename=relative_path)
+        self.test_case = TestCase.objects.get(path=relative_path)
 
         modification_timestamp = max([
             os.path.getmtime(os.path.join(testdir, filename))

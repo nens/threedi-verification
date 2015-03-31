@@ -24,11 +24,11 @@ LIBRARIES = (
 
 class TestCase(models.Model):
 
-    filename = models.CharField(
-        verbose_name=_("filename"),
+    path = models.CharField(
+        verbose_name=_("path"),
         unique=True,
-        help_text=_("Filename (mdu or input), including path, inside the "
-                    " 'testbank' directory"),
+        help_text=_("Path to model input (mdu or other input, e.g., a model "
+                    "dir), inside the 'testbank' directory"),
         max_length=255)
     library = models.CharField(
         max_length=4,
@@ -48,10 +48,10 @@ class TestCase(models.Model):
     class Meta:
         verbose_name = _("test case")
         verbose_name_plural = _("test cases")
-        ordering = ['filename']
+        ordering = ['path']
 
     def __unicode__(self):
-        return _("test case %s") % self.filename
+        return _("test case %s") % self.path
 
     def get_absolute_url(self):
         return reverse('threedi_verification.test_case',
@@ -59,7 +59,7 @@ class TestCase(models.Model):
 
     @cached_property
     def pretty_name(self):
-        name = self.filename.split('/')[-1]
+        name = self.path.split('/')[-1]
         if self.library == SUBGRID:
             name = name.rstrip('.mdu')
         if self.info:

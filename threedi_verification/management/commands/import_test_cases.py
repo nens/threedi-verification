@@ -26,14 +26,14 @@ class Command(BaseCommand):
                 relative_path = os.path.relpath(full_path,
                                                 settings.TESTCASES_ROOT)
                 if TestCase.objects.filter(
-                        filename=relative_path).exists():
-                    test_case = TestCase.objects.get(filename=relative_path)
+                        path=relative_path).exists():
+                    test_case = TestCase.objects.get(path=relative_path)
                     test_case.is_active = True
                     test_case.save()
                     found.append(test_case.id)
                     continue
                 test_case = TestCase.objects.create(
-                    filename=relative_path)
+                    path=relative_path)
                 logger.info("Found new testcase: %s", test_case)
                 index_file = os.path.join(dirpath, 'index.txt')
                 if os.path.exists(index_file):
