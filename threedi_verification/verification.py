@@ -799,7 +799,7 @@ def run_flow_simulation(model_dir, mdu_report=None, verbose=False):
     os.chdir(original_dir)
 
 
-def run_simulation(mdu_filepath, mdu_report=None, verbose=False):
+def run_subgrid_simulation(mdu_filepath, mdu_report=None, verbose=False):
     original_dir = os.getcwd()
     os.chdir(os.path.dirname(mdu_filepath))
     if 'index.txt' in os.listdir('.'):
@@ -898,6 +898,7 @@ def main():
     for mdu_filepath in mdu_filepaths(args.directory):
         if args.testcase and (args.testcase not in mdu_filepath):
             continue
-        run_simulation(mdu_filepath, mdu_report=report, verbose=args.verbose)
+        run_subgrid_simulation(mdu_filepath, mdu_report=report,
+                               verbose=args.verbose)
     report.export_reports()
     create_archive_index()

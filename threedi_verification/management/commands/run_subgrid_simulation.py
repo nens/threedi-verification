@@ -126,7 +126,7 @@ class Command(BaseCommand):
     def run_simulation(self):
         mdu_report = verification.MduReport(self.full_path)
         start_time = time.time()
-        verification.run_simulation(self.full_path, mdu_report)
+        verification.run_subgrid_simulation(self.full_path, mdu_report)
         self.test_run.duration = (time.time() - start_time)
         self.test_run.report = mdu_report.as_dict()
         self.test_run.save()

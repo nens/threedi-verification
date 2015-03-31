@@ -39,4 +39,4 @@ class Command(BaseCommand):
                 continue
             if options['limit'] and (options['limit'] not in full_path):
                 continue
-            call_command('run_simulation', full_path, force=options['force'])
+            call_command('run_subgrid_simulation', full_path, force=options['force'])
