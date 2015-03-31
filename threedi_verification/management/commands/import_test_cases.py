@@ -17,6 +17,7 @@ class Command(BaseCommand):
         self.look_at_test_cases()
 
     def look_at_test_cases(self):
+        """Import/update the (new) test cases"""
         existing = TestCase.objects.all().values_list('id', flat=True)
         found = []
         for dirpath, dirnames, filenames in os.walk(settings.TESTCASES_ROOT):

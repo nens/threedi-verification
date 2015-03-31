@@ -7,9 +7,11 @@ import os
 SETTINGS_DIR = os.path.dirname(os.path.realpath(__file__))
 BUILDOUT_DIR = os.path.abspath(os.path.join(SETTINGS_DIR, '..'))
 TESTCASES_ROOT = os.path.join(BUILDOUT_DIR, 'testbank')
+URBAN_TESTCASES_ROOT = os.path.join(BUILDOUT_DIR, 'testbank_urban')
 STATIC_ROOT = os.path.join(BUILDOUT_DIR, 'var', 'static')
 STATIC_URL = '/testresults/static/'
 ROOT_URLCONF = 'threedi_verification.urls'
+
 SECRET_KEY = 'sleutel van het secreet'
 DEBUG = True
 ALLOWED_HOSTS = ['jenkins.3di.lizard.net', 'localhost']

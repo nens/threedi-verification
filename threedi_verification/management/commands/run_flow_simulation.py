@@ -19,6 +19,7 @@ from threedi_verification import verification
 
 
 logger = logging.getLogger(__name__)
+MODELS_ROOT = settings.URBAN_TESTCASES_ROOT
 
 
 class Command(BaseCommand):
@@ -34,9 +35,10 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-#        if not len(args) == 1 or not args[0].endswith('.mdu'):
-#            logger.error("Pass one full pathname to the model directory")
-#            sys.exit(1)
+        if not len(args) == 1 or not os.path.isdir(args[0]):
+            logger.error("Pass one full path to the model directory")
+            sys.exit(1)
+        # For FLOW, the path is the model directory
         self.full_path = os.path.abspath(args[0])
 
         self.look_at_library()
@@ -51,7 +53,8 @@ class Command(BaseCommand):
 
     def look_at_library(self):
         """Look at the library and create a new library version, if needed."""
-        modification_timestamp = os.path.getmtime(settings.FLOW_LIBRARY_LOCATION)
+        modification_timestamp = os.path.getmtime(
+            settings.FLOW_LIBRARY_LOCATION)
         last_modified = datetime.datetime.fromtimestamp(
             modification_timestamp)
         self.library_version, created = LibraryVersion.objects.get_or_create(
@@ -59,40 +62,43 @@ class Command(BaseCommand):
         if created:
             logger.info("Found new library version: %s", self.library_version)
             num_mdu_files = 0
-            for dirpath, dirnames, filenames in os.walk(settings.TESTCASES_ROOT):
+            for dirpath, dirnames, filenames in os.walk(MODELS_ROOT):
                 num_mdu_files += len(
                     [f for f in filenames if f.endswith('.mdu')])
             self.library_version.num_test_cases = num_mdu_files
 
     def look_at_test_case(self):
-        """Look at the test case and create a new version, if needed."""
-        testdir = os.path.dirname(self.full_path)
+        """Look at the test case and create a new TestCaseVersion if needed,
+           and also update TestCase.info and TestCase.csv fields"""
+        testdir = self.full_path
 
-        relative_path = os.path.relpath(self.full_path,
-                                        settings.TESTCASES_ROOT)
+        # path w.r.t. MODELS_ROOT because that's what TestCase expects
+        relative_path = os.path.relpath(
+            self.full_path, MODELS_ROOT)
         self.test_case = TestCase.objects.get(path=relative_path)
 
-        modification_timestamp = max([
+        # Note: only finds changes one dir level deep
+        modification_timestamps = [
             os.path.getmtime(os.path.join(testdir, filename))
-            for filename in os.listdir(testdir)
-            if not (filename.endswith('.dia') or
-                    filename.startswith('fort.'))])
+            for filename in os.listdir(testdir) if not (
+                filename.endswith('.dia') or filename.startswith('fort.'))]
         last_modified = datetime.datetime.fromtimestamp(
-            modification_timestamp)
+            max(modification_timestamps))
 
-        if not TestCaseVersion.objects.filter(
-                test_case=self.test_case,
-                last_modified=last_modified).exists():
-            self.test_case_version = TestCaseVersion.objects.create(
-                test_case=self.test_case,
-                last_modified=last_modified)
-            logger.info("Created new test case version: %s", self.test_case_version)
-        else:
-            self.test_case_version = TestCaseVersion.objects.get(
+        # Create new TestCaseVersion if a version with the date isn't found
+        tcv = TestCaseVersion.objects.filter(
+            test_case=self.test_case, last_modified=last_modified)
+        if not tcv:
+            tcv = TestCaseVersion.objects.create(
                 test_case=self.test_case,
                 last_modified=last_modified)
+            logger.info("Created new test case version: %s",
+                        self.test_case_version)
+        self.test_case_version = tcv
+
+        # Update TestCase.info and csv fields
         index_file = os.path.join(testdir, 'index.txt')
-        if os.path.exists(index_file):
+        if os.path.isfile(index_file):
             # Make sure the content is up to date.
             self.test_case.info = open(index_file).read()
         self.test_case.has_csv = bool(glob.glob(
@@ -128,7 +134,8 @@ class Command(BaseCommand):
     def run_simulation(self):
         mdu_report = verification.MduReport(self.full_path)
         start_time = time.time()
-        verification.run_flow_simulation(os.path.dirname(self.full_path), mdu_report)
+        verification.run_flow_simulation(
+            os.path.dirname(self.full_path), mdu_report)
         self.test_run.duration = (time.time() - start_time)
         self.test_run.report = mdu_report.as_dict()
         self.test_run.save()

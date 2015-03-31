@@ -49,8 +49,9 @@ class Command(BaseCommand):
         self.run_simulation()
 
     def look_at_library(self):
-        """Look at the library and create a new library version, if needed."""
-        modification_timestamp = os.path.getmtime(settings.SUBGRID_LIBRARY_LOCATION)
+        """Look at the library and create a new library version, if needed"""
+        modification_timestamp = os.path.getmtime(
+            settings.SUBGRID_LIBRARY_LOCATION)
         last_modified = datetime.datetime.fromtimestamp(
             modification_timestamp)
         self.library_version, created = LibraryVersion.objects.get_or_create(
@@ -58,13 +59,14 @@ class Command(BaseCommand):
         if created:
             logger.info("Found new library version: %s", self.library_version)
             num_mdu_files = 0
-            for dirpath, dirnames, filenames in os.walk(settings.TESTCASES_ROOT):
+            for dirpath, dirnames, filenames in os.walk(
+                    settings.TESTCASES_ROOT):
                 num_mdu_files += len(
                     [f for f in filenames if f.endswith('.mdu')])
             self.library_version.num_test_cases = num_mdu_files
 
     def look_at_test_case(self):
-        """Look at the test case and create a new version, if needed."""
+        """Look at the test case and create a new TestCaseVersion, if needed"""
         testdir = os.path.dirname(self.full_path)
         relative_path = os.path.relpath(self.full_path,
                                         settings.TESTCASES_ROOT)

@@ -28,7 +28,7 @@ class TestCase(models.Model):
         verbose_name=_("path"),
         unique=True,
         help_text=_("Path to model input (mdu or other input, e.g., a model "
-                    "dir), inside the 'testbank' directory"),
+                    "dir), w.r.t. the 'testbank' (TESTCASES_ROOT) directory"),
         max_length=255)
     library = models.CharField(
         max_length=4,
