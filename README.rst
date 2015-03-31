@@ -1,5 +1,5 @@
-threedi-verification for Flow library
-===========================================
+threedi-verification
+==========================================
 
 This program tests a directory structure of mdu/csv files that all
 together check the subgrid fortran library. What it does:
@@ -58,10 +58,10 @@ largefile mercurial extension in your ``~/.hgrc``). After that::
     $ bin/django run_simulations
 
 Or in case you want to test with a specific testcase (especially when
-developing), use the ``run_simulation`` (without an ``s``) command and pass in
+developing), use the ``run_subgrid_simulation`` command and pass in
 an mdu file::
 
-    $ bin/django run_simulation testbank/4_09/4_09_07/4_09_07.mdu
+    $ bin/django run_subgrid_simulation testbank/4_09/4_09_07/4_09_07.mdu
 
 This generates some html files into the ``var/html/`` directory.
 The html output is also generated on jenkins:

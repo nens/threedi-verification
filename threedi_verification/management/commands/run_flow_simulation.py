@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     args = "model directory"
-    help = "Run one subgrid simulation"
+    help = "Run one flow simulation"
     option_list = BaseCommand.option_list + (
         optparse.make_option(
             '--force',

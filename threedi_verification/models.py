@@ -75,6 +75,10 @@ class TestCase(models.Model):
         if test_runs.exists():
             return test_runs.first()
 
+    @cached_property
+    def library_name(self):
+        return dict(LIBRARIES).get(self.library)
+
 
 class TestCaseVersion(models.Model):
 
@@ -119,7 +123,7 @@ class LibraryVersion(models.Model):
         ordering = ['-last_modified']
 
     def __unicode__(self):
-        return _("%s library version of %s") % (dict(LIBRARIES)[self.library],
+        return _("%s library version of %s") % (self.library_name,
                                                 self.last_modified)
 
     def get_absolute_url(self):
@@ -142,6 +146,10 @@ class LibraryVersion(models.Model):
         return range(len([test_run for test_run in self.test_runs.filter(
             test_case_version__test_case__has_csv=True)
             if test_run.has_crashed]))
+
+    @cached_property
+    def library_name(self):
+        return dict(LIBRARIES).get(self.library)
 
 
 class TestRun(models.Model):
