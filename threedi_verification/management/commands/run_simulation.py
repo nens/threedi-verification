@@ -14,8 +14,8 @@ from threedi_verification.models import TestCase
 from threedi_verification.models import TestCaseVersion
 from threedi_verification.models import TestRun
 from threedi_verification import verification
+from threedi_verification.models import SUBGRID
 
-LIBRARY_LOCATION = '/opt/3di/bin/subgridf90'
 
 logger = logging.getLogger(__name__)
 
@@ -50,11 +50,11 @@ class Command(BaseCommand):
 
     def look_at_library(self):
         """Look at the library and create a new library version, if needed."""
-        modification_timestamp = os.path.getmtime(LIBRARY_LOCATION)
+        modification_timestamp = os.path.getmtime(settings.SUBGRID_LIBRARY_LOCATION)
         last_modified = datetime.datetime.fromtimestamp(
             modification_timestamp)
         self.library_version, created = LibraryVersion.objects.get_or_create(
-            last_modified=last_modified)
+            library=SUBGRID, last_modified=last_modified)
         if created:
             logger.info("Found new library version: %s", self.library_version)
             num_mdu_files = 0

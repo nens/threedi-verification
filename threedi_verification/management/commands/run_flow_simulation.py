@@ -13,9 +13,10 @@ from threedi_verification.models import LibraryVersion
 from threedi_verification.models import TestCase
 from threedi_verification.models import TestCaseVersion
 from threedi_verification.models import TestRun
+from threedi_verification.models import FLOW
+
 from threedi_verification import verification
 
-LIBRARY_LOCATION = '/opt/threedicore/bin/flow1d2d'
 
 logger = logging.getLogger(__name__)
 
@@ -50,11 +51,11 @@ class Command(BaseCommand):
 
     def look_at_library(self):
         """Look at the library and create a new library version, if needed."""
-        modification_timestamp = os.path.getmtime(LIBRARY_LOCATION)
+        modification_timestamp = os.path.getmtime(settings.FLOW_LIBRARY_LOCATION)
         last_modified = datetime.datetime.fromtimestamp(
             modification_timestamp)
         self.library_version, created = LibraryVersion.objects.get_or_create(
-            last_modified=last_modified)
+            library=FLOW, last_modified=last_modified)
         if created:
             logger.info("Found new library version: %s", self.library_version)
             num_mdu_files = 0

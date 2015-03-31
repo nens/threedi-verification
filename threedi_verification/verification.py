@@ -711,6 +711,8 @@ def check_csv(csv_filename, mdu_report=None):
         netcdf_filename = 'subgrid_his.nc'
     else:
         netcdf_filename = 'subgrid_map.nc'
+        # Flow needs this structure:
+        # netcdf_filename = 'results/subgrid_map.nc'
     with Dataset(netcdf_filename) as dataset:
         for test_number, instruction in enumerate(instructions):
             instruction_id = csv_filename[:-4] + '-' + str(test_number)
