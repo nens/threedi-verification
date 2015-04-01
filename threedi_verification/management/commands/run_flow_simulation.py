@@ -79,16 +79,16 @@ class Command(BaseCommand):
 
         # Detects changes in models
         # TODO: make changes detection better (put in function)
-        input_subdir = os.path.join(testdir, 'input_generated')
         model_subdir = os.path.join(testdir, 'model')
         timestamps1 = [
-            os.path.getmtime(os.path.join(input_subdir, filename))
-            for filename in os.listdir(input_subdir)
-            if not filename.startswith('post_mortem')]
-        timestamps2 = [
             os.path.getmtime(os.path.join(model_subdir, filename))
             for filename in os.listdir(model_subdir)]
-        modification_timestamps = timestamps1 + timestamps2
+        # input_subdir = os.path.join(testdir, 'input_generated')
+        # timestamps2 = [
+        #     os.path.getmtime(os.path.join(input_subdir, filename))
+        #     for filename in os.listdir(input_subdir)
+        #     if not filename.startswith('post_mortem')]
+        modification_timestamps = timestamps1  # + timestamps2
         last_modified = datetime.datetime.fromtimestamp(
             max(modification_timestamps))
 
