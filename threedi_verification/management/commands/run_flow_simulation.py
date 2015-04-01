@@ -77,24 +77,32 @@ class Command(BaseCommand):
             self.full_path, MODELS_ROOT)
         self.test_case = TestCase.objects.get(path=relative_path)
 
-        # Note: only finds changes one dir level deep
-        modification_timestamps = [
-            os.path.getmtime(os.path.join(testdir, filename))
-            for filename in os.listdir(testdir) if not (
-                filename.endswith('.dia') or filename.startswith('fort.'))]
+        # Detects changes in models
+        # TODO: make changes detection better (put in function)
+        input_subdir = os.path.join(testdir, 'input_generated')
+        model_subdir = os.path.join(testdir, 'model')
+        timestamps1 = [
+            os.path.getmtime(os.path.join(input_subdir, filename))
+            for filename in os.listdir(input_subdir)
+            if not filename.startswith('post_mortem')]
+        timestamps2 = [
+            os.path.getmtime(os.path.join(model_subdir, filename))
+            for filename in os.listdir(model_subdir)]
+        modification_timestamps = timestamps1 + timestamps2
         last_modified = datetime.datetime.fromtimestamp(
             max(modification_timestamps))
 
         # Create new TestCaseVersion if a version with the date isn't found
-        tcv = TestCaseVersion.objects.filter(
+        tcvs = TestCaseVersion.objects.filter(
             test_case=self.test_case, last_modified=last_modified)
-        if not tcv:
-            tcv = TestCaseVersion.objects.create(
-                test_case=self.test_case,
-                last_modified=last_modified)
+        if not tcvs.exists():        # exists() avoids complete evaluation
+            self.test_case_version = TestCaseVersion.objects.create(
+                test_case=self.test_case, last_modified=last_modified)
             logger.info("Created new test case version: %s",
                         self.test_case_version)
-        self.test_case_version = tcv
+        else:
+            self.test_case_version = TestCaseVersion.objects.get(
+                test_case=self.test_case, last_modified=last_modified)
 
         # Update TestCase.info and csv fields
         index_file = os.path.join(testdir, 'index.txt')
@@ -134,8 +142,7 @@ class Command(BaseCommand):
     def run_simulation(self):
         mdu_report = verification.MduReport(self.full_path)
         start_time = time.time()
-        verification.run_flow_simulation(
-            os.path.dirname(self.full_path), mdu_report)
-        self.test_run.duration = (time.time() - start_time)
+        verification.run_flow_simulation(self.full_path, mdu_report)
+        self.test_run.duration = time.time() - start_time
         self.test_run.report = mdu_report.as_dict()
         self.test_run.save()

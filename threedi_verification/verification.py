@@ -12,6 +12,7 @@ import datetime
 import json
 import logging
 import os
+import shutil
 
 from jinja2 import Environment, PackageLoader
 from netCDF4 import Dataset
@@ -204,7 +205,11 @@ class MduReport(object):
 
     @property
     def title(self):
-        return self.id.split('/testbank/')[1]
+        try:
+            title = self.id.split('/testbank/')[1]
+        except:
+            title = "FIXTITLEPROPERTY"
+        return title
 
     @property
     def short_title(self):
@@ -704,15 +709,18 @@ def check_map_nflow(instruction, instruction_report, dataset):
                 desired)
 
 
-def check_csv(csv_filename, mdu_report=None):
+def check_csv(csv_filename, netcdf_path=None, mdu_report=None):
     instructions = list(csv.DictReader(open(csv_filename), delimiter=';'))
     mdu_report.record_instructions(instructions, csv_filename)
-    if 'his' in csv_filename:
+
+    # Flow needs this structure:
+    # netcdf_filename = 'results/subgrid_map.nc'
+    if netcdf_path:
+        netcdf_filename = netcdf_path
+    elif 'his' in csv_filename:
         netcdf_filename = 'subgrid_his.nc'
     else:
         netcdf_filename = 'subgrid_map.nc'
-        # Flow needs this structure:
-        # netcdf_filename = 'results/subgrid_map.nc'
     with Dataset(netcdf_filename) as dataset:
         for test_number, instruction in enumerate(instructions):
             instruction_id = csv_filename[:-4] + '-' + str(test_number)
@@ -752,7 +760,7 @@ def check_mdu_file(mdu_filepath):
 
 def run_flow_simulation(model_dir, mdu_report=None, verbose=False):
     """
-    Run simulation using the flow lib
+    Run simulation using python-flow
 
     Params:
         input_dir: path to the model dir
@@ -786,15 +794,16 @@ def run_flow_simulation(model_dir, mdu_report=None, verbose=False):
         mdu_report.status = LOADED
         logger.info("Successfully loaded: %s", model_dir)
         mdu_report.successfully_loaded_log = output
-        mdu_report.model_parameters = list(model_parameters(model_dir))
+        # mdu_report.model_parameters = list(model_parameters(model_dir))
+        mdu_report.model_parameters = []
         csv_filenames = [f for f in os.listdir('.') if f.endswith('.csv')]
         for csv_filename in csv_filenames:
             logger.info("Reading instructions from %s", csv_filename)
-            check_csv(csv_filename, mdu_report=mdu_report)
+            check_csv(csv_filename, netcdf_path='results/subgrid_map.nc',
+                      mdu_report=mdu_report)
 
-    # Cleanup: zap *.nc files.
-    for nc in [f for f in os.listdir('.') if f.endswith('.nc')]:
-        os.remove(nc)
+    # Cleanup: remove results dir
+    shutil.rmtree('results')
 
     os.chdir(original_dir)
 

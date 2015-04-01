@@ -111,7 +111,7 @@ TIME_ZONE = 'Europe/Amsterdam'
 
 INTERNAL_IPS = ['localhost', '127.0.0.1']
 
-# Libraries
+# Libraries (probably) only checked for timestamp
 SUBGRID_LIBRARY_LOCATION = '/opt/3di/bin/subgridf90'
 FLOW_LIBRARY_LOCATION = '/opt/threedicore/bin/flow1d2d'
 
