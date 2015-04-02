@@ -63,10 +63,12 @@ the type of simulations)::
 
 Or in case you want to test with a specific testcase (especially when
 developing), use the ``run_subgrid_simulation`` command and pass in
-an mdu file for the subgrid library, or ``run_flow_simulation`` and pass in a
-model dir for the flow library::
+an mdu file for the subgrid library::
 
     $ bin/django run_subgrid_simulation testbank/4_09/4_09_07/4_09_07.mdu
+
+Or ``run_flow_simulation`` and pass in a model dir for the flow library::
+
     $ bin/django run_flow_simulation testbank_urban/4_1D_OnePip/
 
 This generates some html files into the ``var/html/`` directory.
