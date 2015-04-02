@@ -14,6 +14,7 @@ import logging
 import os
 import shutil
 
+from django.conf import settings
 from jinja2 import Environment, PackageLoader
 from netCDF4 import Dataset
 import numpy as np
@@ -194,7 +195,8 @@ class MduReport(object):
 
     @property
     def details_filename(self):
-        id = self.id.split('/testbank/')[1]
+        name = '/{}/'.format(settings.TESTCASES_ROOT_NAME)
+        id = self.id.split(name)[1]
         id = id.replace('/', '-')
         return 'details_%s.html' % id
 
@@ -205,8 +207,9 @@ class MduReport(object):
 
     @property
     def title(self):
+        name = '/{}/'.format(settings.TESTCASES_ROOT_NAME)
         try:
-            title = self.id.split('/testbank/')[1]
+            title = self.id.split(name)[1]
         except:
             title = "FIXTITLEPROPERTY"
         return title
@@ -236,6 +239,42 @@ class MduReport(object):
         if len(correct_results) > len(wrong_results):
             return 'PARTIALLY'
         return 'WRONG'
+
+
+class InpReport(MduReport):
+    """A version of the MduReport for the flow lib"""
+
+    def __init__(self, path):
+        super(InpReport, self).__init__(path)
+
+    @property
+    def log_filename(self):
+        # TODO: overrride?
+        id = self.id.replace('/', '-')
+        return 'mdu_log_%s.html' % id
+
+    @property
+    def details_filename(self):
+        name = '/{}/'.format(settings.URBAN_TESTCASES_ROOT_NAME)
+        id = self.id.split(name)[1]
+        id = id.replace('/', '-')
+        return 'details_%s.html' % id
+
+    @property
+    def title(self):
+        name = '/{}/'.format(settings.URBAN_TESTCASES_ROOT_NAME)
+        try:
+            title = self.id.split(name)[1]
+        except:
+            title = "FIXTITLEPROPERTYFORFLOW"
+        return title
+
+    @property
+    def short_title(self):
+        parts = self.title.split('/')
+        short = parts[-1]
+        short = short.replace('_', ' ')
+        return short
 
 
 class Report(object):
@@ -758,18 +797,19 @@ def check_mdu_file(mdu_filepath):
                 return msg
 
 
-def run_flow_simulation(model_dir, mdu_report=None, verbose=False):
+def run_flow_simulation(model_dir, inp_report=None, verbose=False):
     """
     Run simulation using python-flow
 
     Params:
-        input_dir: path to the model dir
+        model_dir: path to the model dir
+        inp_report: formerly mdu_report
     """
     original_dir = os.getcwd()
     os.chdir(model_dir)
     # os.chdir("..")
     if 'index.txt' in os.listdir('.'):
-        mdu_report.index_lines = open('index.txt').readlines()
+        inp_report.index_lines = open('index.txt').readlines()
     logger.debug("Loading %s...", model_dir)
     buildout_dir = original_dir
 
@@ -784,23 +824,23 @@ def run_flow_simulation(model_dir, mdu_report=None, verbose=False):
     if exit_code or ('error' in last_output
                      and 'quitting' in last_output):
         logger.error("Loading failed: %s", model_dir)
-        mdu_report.loadable = False
-        mdu_report.log = output
+        inp_report.loadable = False
+        inp_report.log = output
         if 'Segmentation fault' in output:
-            mdu_report.status = CRASHED
+            inp_report.status = CRASHED
         else:
-            mdu_report.status = SOME_ERROR
+            inp_report.status = SOME_ERROR
     else:
-        mdu_report.status = LOADED
+        inp_report.status = LOADED
         logger.info("Successfully loaded: %s", model_dir)
-        mdu_report.successfully_loaded_log = output
-        # mdu_report.model_parameters = list(model_parameters(model_dir))
-        mdu_report.model_parameters = []
+        inp_report.successfully_loaded_log = output
+        # inp_report.model_parameters = list(model_parameters(model_dir))
+        inp_report.model_parameters = []
         csv_filenames = [f for f in os.listdir('.') if f.endswith('.csv')]
         for csv_filename in csv_filenames:
             logger.info("Reading instructions from %s", csv_filename)
             check_csv(csv_filename, netcdf_path='results/subgrid_map.nc',
-                      mdu_report=mdu_report)
+                      mdu_report=inp_report)
 
     # Cleanup: remove results dir
     shutil.rmtree('results')

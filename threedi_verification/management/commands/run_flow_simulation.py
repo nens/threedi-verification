@@ -140,9 +140,9 @@ class Command(BaseCommand):
             library_version=self.library_version)
 
     def run_simulation(self):
-        mdu_report = verification.MduReport(self.full_path)
+        inp_report = verification.InpReport(self.full_path)
         start_time = time.time()
-        verification.run_flow_simulation(self.full_path, mdu_report)
+        verification.run_flow_simulation(self.full_path, inp_report)
         self.test_run.duration = time.time() - start_time
-        self.test_run.report = mdu_report.as_dict()
+        self.test_run.report = inp_report.as_dict()
         self.test_run.save()

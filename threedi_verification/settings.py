@@ -6,8 +6,12 @@ import os
 
 SETTINGS_DIR = os.path.dirname(os.path.realpath(__file__))
 BUILDOUT_DIR = os.path.abspath(os.path.join(SETTINGS_DIR, '..'))
-TESTCASES_ROOT = os.path.join(BUILDOUT_DIR, 'testbank')
-URBAN_TESTCASES_ROOT = os.path.join(BUILDOUT_DIR, 'testbank_urban')
+
+TESTCASES_ROOT_NAME = 'testbank'
+URBAN_TESTCASES_ROOT_NAME = 'testbank_urban'
+TESTCASES_ROOT = os.path.join(BUILDOUT_DIR, TESTCASES_ROOT_NAME)
+URBAN_TESTCASES_ROOT = os.path.join(BUILDOUT_DIR, URBAN_TESTCASES_ROOT_NAME)
+
 STATIC_ROOT = os.path.join(BUILDOUT_DIR, 'var', 'static')
 STATIC_URL = '/testresults/static/'
 ROOT_URLCONF = 'threedi_verification.urls'
