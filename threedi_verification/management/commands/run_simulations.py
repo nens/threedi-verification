@@ -45,6 +45,9 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        if not options['subgrid'] and not options['flow']:
+            print("Error! Run with --subgrid or --flow (or both)")
+            return
         if options['subgrid']:
             for test_case in TestCase.objects.filter(library=SUBGRID):
                 full_path = os.path.join(subgrid_testcases_dir, test_case.path)
