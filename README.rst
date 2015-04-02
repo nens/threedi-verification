@@ -55,13 +55,19 @@ the ``testbank/`` subdirectory. (You might need to enable the
 largefile mercurial extension in your ``~/.hgrc``). After that::
 
     $ bin/django import_test_cases
-    $ bin/django run_simulations
+
+You can run simulations with the following command (use the options to select
+the type of simulations)::
+
+    $ bin/django run_simulations [--subgrid] [--flow]
 
 Or in case you want to test with a specific testcase (especially when
 developing), use the ``run_subgrid_simulation`` command and pass in
-an mdu file::
+an mdu file for the subgrid library, or ``run_flow_simulation`` and pass in a
+model dir for the flow library::
 
     $ bin/django run_subgrid_simulation testbank/4_09/4_09_07/4_09_07.mdu
+    $ bin/django run_flow_simulation testbank_urban/4_1D_OnePip/
 
 This generates some html files into the ``var/html/`` directory.
 The html output is also generated on jenkins:
@@ -78,3 +84,10 @@ a "make install" is automatically done.
 
 When running locally and using the debian packages, you'll need to symlink
 ``/opt/3di/`` to the latest ``/opt/3di/*`` version. Or compile it by hand.
+
+
+Flow library location
+---------------------
+
+Default installation of the flow library with the .deb package is in
+``/opt/threedicore/``
