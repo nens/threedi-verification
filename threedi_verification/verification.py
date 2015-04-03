@@ -210,7 +210,8 @@ class MduReport(object):
         name = '/{}/'.format(settings.TESTCASES_ROOT_NAME)
         try:
             title = self.id.split(name)[1]
-        except:
+        except Exception as e:
+            logger.exception(e)
             title = "FIXTITLEPROPERTY"
         return title
 
@@ -265,7 +266,8 @@ class InpReport(MduReport):
         name = '/{}/'.format(settings.URBAN_TESTCASES_ROOT_NAME)
         try:
             title = self.id.split(name)[1]
-        except:
+        except Exception as e:
+            logger.exception(e)
             title = "FIXTITLEPROPERTYFORFLOW"
         return title
 

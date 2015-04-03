@@ -38,7 +38,9 @@ class HomeView(BaseView):
 
     @cached_property
     def latest_test_runs(self):
-        return TestRun.objects.all()[:5]
+        active_runs = TestRun.objects.filter(
+            test_case_version__test_case__is_active=True)
+        return active_runs[:5]
 
 
 class LibraryVersionsView(BaseView):
