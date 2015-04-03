@@ -13,6 +13,7 @@ import json
 import logging
 import os
 import shutil
+import glob
 
 from django.conf import settings
 from jinja2 import Environment, PackageLoader
@@ -247,6 +248,25 @@ class InpReport(MduReport):
 
     def __init__(self, path):
         super(InpReport, self).__init__(path)
+        self.input_files = []
+
+    def as_dict(self):
+        # Basically: what ends up in mdu.html as context.
+        result = dict(
+            loadable=self.loadable,
+            short_title=self.short_title,
+            index_lines=self.index_lines,
+            log=self.log,
+            successfully_loaded_log=None,  # No verbosity at the moment
+            log_summary=self.log and self.log_summary or None,
+            csv_contents=self.csv_contents,
+            model_parameters=self.model_parameters,
+            input_files=self.input_files,
+            instruction_reports=[],
+            )
+        for instruction_report in self.instruction_reports.values():
+            result['instruction_reports'].append(instruction_report.as_dict())
+        return result
 
     @property
     def log_filename(self):
@@ -790,6 +810,22 @@ def model_parameters(mdu_filepath):
         yield parameter, value
 
 
+def input_files(model_dir):
+    """Just return the contents of the input files"""
+    input_generated_dir = os.path.join(model_dir, 'input_generated')
+
+    # will capture 'input.  1' and 'input_grid_gen.  1'
+    pattern = os.path.join(input_generated_dir, 'input*')
+    inp_file_names = glob.glob(pattern)
+    logger.debug("Found the following input files: %s", inp_file_names)
+    txts = []
+    for fn in inp_file_names:
+        with open(fn, 'r') as f:
+            filename = fn.split('/')[-1]
+            txts.append((filename, f.read()))
+    return txts
+
+
 def check_mdu_file(mdu_filepath):
     for line in open(mdu_filepath):
         if line.startswith('NTimesteps'):
@@ -836,8 +872,7 @@ def run_flow_simulation(model_dir, inp_report=None, verbose=False):
         inp_report.status = LOADED
         logger.info("Successfully loaded: %s", model_dir)
         inp_report.successfully_loaded_log = output
-        # inp_report.model_parameters = list(model_parameters(model_dir))
-        inp_report.model_parameters = []
+        inp_report.input_files = input_files(model_dir)
         csv_filenames = [f for f in os.listdir('.') if f.endswith('.csv')]
         for csv_filename in csv_filenames:
             logger.info("Reading instructions from %s", csv_filename)
