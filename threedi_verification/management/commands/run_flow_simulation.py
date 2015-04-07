@@ -78,17 +78,13 @@ class Command(BaseCommand):
         self.test_case = TestCase.objects.get(path=relative_path)
 
         # Detects changes in models
-        # TODO: make changes detection better (put in function)
+        # TODO: make changes detection better (put in function); check other
+        # dirs, csv file for changes?
         model_subdir = os.path.join(testdir, 'model')
         timestamps1 = [
             os.path.getmtime(os.path.join(model_subdir, filename))
             for filename in os.listdir(model_subdir)]
-        # input_subdir = os.path.join(testdir, 'input_generated')
-        # timestamps2 = [
-        #     os.path.getmtime(os.path.join(input_subdir, filename))
-        #     for filename in os.listdir(input_subdir)
-        #     if not filename.startswith('post_mortem')]
-        modification_timestamps = timestamps1  # + timestamps2
+        modification_timestamps = timestamps1
         last_modified = datetime.datetime.fromtimestamp(
             max(modification_timestamps))
 
