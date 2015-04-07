@@ -8,3 +8,13 @@ then
 fi
 cd testbank;
 hg pull -u
+cd ..
+
+# Do the same for the flow test cases.
+if [ ! -d testbank_flow ]
+then
+    echo "testbank_flow subdir doesn't exist, cloning it"
+    hg clone http://hg.lizard.net/testbank_flow
+fi
+cd testbank;
+hg pull -u
