@@ -38,7 +38,7 @@ etc/*.nginx.conf
 etc/*.logrotate
 
 testbank
-testbank_urban
+testbank_flow
 .DS_Store
 
 bower_components/

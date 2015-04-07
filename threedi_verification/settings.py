@@ -8,7 +8,7 @@ SETTINGS_DIR = os.path.dirname(os.path.realpath(__file__))
 BUILDOUT_DIR = os.path.abspath(os.path.join(SETTINGS_DIR, '..'))
 
 TESTCASES_ROOT_NAME = 'testbank'
-URBAN_TESTCASES_ROOT_NAME = 'testbank_urban'
+URBAN_TESTCASES_ROOT_NAME = 'testbank_flow'
 TESTCASES_ROOT = os.path.join(BUILDOUT_DIR, TESTCASES_ROOT_NAME)
 URBAN_TESTCASES_ROOT = os.path.join(BUILDOUT_DIR, URBAN_TESTCASES_ROOT_NAME)
 
