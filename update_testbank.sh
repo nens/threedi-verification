@@ -16,5 +16,5 @@ then
     echo "testbank_flow subdir doesn't exist, cloning it"
     hg clone http://hg.lizard.net/testbank_flow
 fi
-cd testbank;
+cd testbank_flow;
 hg pull -u
