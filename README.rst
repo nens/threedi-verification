@@ -51,15 +51,15 @@ A django site shows the tests results, so the regular django setup is needed::
     $ bin/django runserver  # To run the site.
 
 Run ``./update_testbank.sh`` to get the current set of test cases in
-the ``testbank/`` subdirectory. (You might need to enable the
-largefile mercurial extension in your ``~/.hgrc``). After that::
+the ``testbank/``  and ``testbank_flow/`` subdirectories. (You might need
+to enable the largefile mercurial extension in your ``~/.hgrc``). After that::
 
     $ bin/django import_test_cases
 
 You can run simulations with the following command (use the options to select
 the type of simulations)::
 
-    $ bin/django run_simulations [--subgrid] [--flow]
+    $ bin/django run_simulations [--only-subgrid] [--only-flow]
 
 Or in case you want to test with a specific testcase (especially when
 developing), use the ``run_subgrid_simulation`` command and pass in
