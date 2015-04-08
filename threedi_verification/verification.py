@@ -12,7 +12,10 @@ import datetime
 import json
 import logging
 import os
+import shutil
+import glob
 
+from django.conf import settings
 from jinja2 import Environment, PackageLoader
 from netCDF4 import Dataset
 import numpy as np
@@ -193,7 +196,8 @@ class MduReport(object):
 
     @property
     def details_filename(self):
-        id = self.id.split('/testbank/')[1]
+        name = '/{}/'.format(settings.TESTCASES_ROOT_NAME)
+        id = self.id.split(name)[1]
         id = id.replace('/', '-')
         return 'details_%s.html' % id
 
@@ -204,7 +208,13 @@ class MduReport(object):
 
     @property
     def title(self):
-        return self.id.split('/testbank/')[1]
+        name = '/{}/'.format(settings.TESTCASES_ROOT_NAME)
+        try:
+            title = self.id.split(name)[1]
+        except Exception as e:
+            logger.exception(e)
+            title = "FIXTITLEPROPERTY"
+        return title
 
     @property
     def short_title(self):
@@ -231,6 +241,62 @@ class MduReport(object):
         if len(correct_results) > len(wrong_results):
             return 'PARTIALLY'
         return 'WRONG'
+
+
+class InpReport(MduReport):
+    """A version of the MduReport for the flow lib"""
+
+    def __init__(self, path):
+        super(InpReport, self).__init__(path)
+        self.input_files = []
+
+    def as_dict(self):
+        # Basically: what ends up in mdu.html as context.
+        result = dict(
+            loadable=self.loadable,
+            short_title=self.short_title,
+            index_lines=self.index_lines,
+            log=self.log,
+            successfully_loaded_log=None,  # No verbosity at the moment
+            log_summary=self.log and self.log_summary or None,
+            csv_contents=self.csv_contents,
+            model_parameters=self.model_parameters,
+            input_files=self.input_files,
+            instruction_reports=[],
+            )
+        for instruction_report in self.instruction_reports.values():
+            result['instruction_reports'].append(instruction_report.as_dict())
+        return result
+
+    @property
+    def log_filename(self):
+        # TODO: overrride?
+        id = self.id.replace('/', '-')
+        return 'mdu_log_%s.html' % id
+
+    @property
+    def details_filename(self):
+        name = '/{}/'.format(settings.URBAN_TESTCASES_ROOT_NAME)
+        id = self.id.split(name)[1]
+        id = id.replace('/', '-')
+        return 'details_%s.html' % id
+
+    @property
+    def title(self):
+        name = '/{}/'.format(settings.URBAN_TESTCASES_ROOT_NAME)
+        try:
+            title = self.id.split(name)[1]
+        except Exception as e:
+            logger.exception(e)
+            title = "FIXTITLEPROPERTYFORFLOW"
+        return title
+
+    @property
+    def short_title(self):
+        parts = self.title.split('/')
+        short = parts[-1]
+        short = short.replace('_', ' ')
+        return short
 
 
 class Report(object):
@@ -704,10 +770,15 @@ def check_map_nflow(instruction, instruction_report, dataset):
                 desired)
 
 
-def check_csv(csv_filename, mdu_report=None):
+def check_csv(csv_filename, netcdf_path=None, mdu_report=None):
     instructions = list(csv.DictReader(open(csv_filename), delimiter=';'))
     mdu_report.record_instructions(instructions, csv_filename)
-    if 'his' in csv_filename:
+
+    # Flow needs this structure:
+    # netcdf_filename = 'results/subgrid_map.nc'
+    if netcdf_path:
+        netcdf_filename = netcdf_path
+    elif 'his' in csv_filename:
         netcdf_filename = 'subgrid_his.nc'
     else:
         netcdf_filename = 'subgrid_map.nc'
@@ -739,6 +810,22 @@ def model_parameters(mdu_filepath):
         yield parameter, value
 
 
+def input_files(model_dir):
+    """Just return the contents of the input files"""
+    input_generated_dir = os.path.join(model_dir, 'input_generated')
+
+    # will capture 'input.  1' and 'input_grid_gen.  1'
+    pattern = os.path.join(input_generated_dir, 'input*')
+    inp_file_names = glob.glob(pattern)
+    logger.debug("Found the following input files: %s", inp_file_names)
+    txts = []
+    for fn in inp_file_names:
+        with open(fn, 'r') as f:
+            filename = fn.split('/')[-1]
+            txts.append((filename, f.read()))
+    return txts
+
+
 def check_mdu_file(mdu_filepath):
     for line in open(mdu_filepath):
         if line.startswith('NTimesteps'):
@@ -748,7 +835,57 @@ def check_mdu_file(mdu_filepath):
                 return msg
 
 
-def run_simulation(mdu_filepath, mdu_report=None, verbose=False):
+def run_flow_simulation(model_dir, inp_report=None, verbose=False):
+    """
+    Run simulation using python-flow
+
+    Params:
+        model_dir: path to the model dir
+        inp_report: formerly mdu_report
+    """
+    original_dir = os.getcwd()
+    os.chdir(model_dir)
+    # os.chdir("..")
+    if 'index.txt' in os.listdir('.'):
+        inp_report.index_lines = open('index.txt').readlines()
+    logger.debug("Loading %s...", model_dir)
+    buildout_dir = original_dir
+
+    pyflow = os.path.join(buildout_dir, 'bin', 'pyflow')
+    cmd = '%s %s -u -m' % (pyflow, os.path.abspath(model_dir))
+    logger.debug("Running %s", cmd)
+    exit_code, output = system(cmd)
+    last_output = ''.join(output.split('\n')[-2:]).lower()
+
+    if verbose:
+        logger.info(output)
+    if exit_code or ('error' in last_output
+                     and 'quitting' in last_output):
+        logger.error("Loading failed: %s", model_dir)
+        inp_report.loadable = False
+        inp_report.log = output
+        if 'Segmentation fault' in output:
+            inp_report.status = CRASHED
+        else:
+            inp_report.status = SOME_ERROR
+    else:
+        inp_report.status = LOADED
+        logger.info("Successfully loaded: %s", model_dir)
+        inp_report.successfully_loaded_log = output
+        inp_report.input_files = input_files(model_dir)
+        csv_filenames = [f for f in os.listdir('.') if f.endswith('.csv')]
+        for csv_filename in csv_filenames:
+            logger.info("Reading instructions from %s", csv_filename)
+            check_csv(csv_filename, netcdf_path='results/subgrid_map.nc',
+                      mdu_report=inp_report)
+
+    # Cleanup: remove results dir
+    shutil.rmtree('results')
+
+    os.chdir(original_dir)
+
+
+def run_subgrid_simulation(mdu_filepath, mdu_report=None, verbose=False):
     original_dir = os.getcwd()
     os.chdir(os.path.dirname(mdu_filepath))
     if 'index.txt' in os.listdir('.'):
@@ -847,6 +984,7 @@ def main():
     for mdu_filepath in mdu_filepaths(args.directory):
         if args.testcase and (args.testcase not in mdu_filepath):
             continue
-        run_simulation(mdu_filepath, mdu_report=report, verbose=args.verbose)
+        run_subgrid_simulation(mdu_filepath, mdu_report=report,
+                               verbose=args.verbose)
     report.export_reports()
     create_archive_index()

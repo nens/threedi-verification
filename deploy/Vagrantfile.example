@@ -1,0 +1,63 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're
+# doing!
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  # All Vagrant configuration is done here. The most common configuration
+  # options are documented and commented below. For a complete reference,
+  # please see the online documentation at vagrantup.com.
+
+  # Vagrant 1.7+ will generate new private keys when you start up your box (check it with
+  # vagrant ssh-config). These settings will let Vagrant come back to pre-1.7 behavior.
+  config.ssh.insert_key = false
+  config.ssh.private_key_path = File.expand_path('~/.vagrant.d/insecure_private_key')
+
+  # Every Vagrant virtual environment requires a box to build off of.
+  config.vm.box = "fgrehm/precise64-lxc"
+
+  # Find vagrant lxc boxes on
+  # https://github.com/fgrehm/vagrant-lxc-base-boxes#pre-built-base-boxes
+  config.vm.box_url = "https://vagrantcloud.com/fgrehm/precise64-lxc"
+
+  # TODO: change the memory usage to your needs; for threedi-server > 4096M
+  # TODO: IP must match the IP in your dev inventory file
+  config.vm.provider :lxc do |lxc|
+    lxc.customize 'cgroup.memory.limit_in_bytes', '2048M'
+    lxc.customize 'network.ipv4', '10.0.3.103/32'
+  end
+
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine. In the example below,
+  # accessing "localhost:9002" will access port 9000 on the guest machine.
+  # Django application
+  config.vm.network :forwarded_port, guest: 9000, host: 9002
+
+  # Need to do an apt-get update first, otherwise ansible fails to run
+  config.vm.provision :shell, inline: 'sudo apt-get update && apt-get install python-apt -y'
+
+  # Enable provisioning with ansible, provide the playbook path and the
+  # inventory file
+  # TODO: use your own inframan/ansible/provision.yml path here
+  config.vm.provision :ansible do |ansible|
+    ansible.playbook = '/home/jackieleng/git/inframan/ansible/provision.yml'
+    ansible.inventory_path = '/home/jackieleng/git/threedi-verification/deploy/dev'
+    ansible.limit = 'dev'
+    ansible.extra_vars = {
+      build_user: 'vagrant'
+    }
+  end
+
+  # Share an additional folder to the guest VM. The first argument is
+  # the path on the host to the actual folder. The second argument is
+  # the path on the guest to mount the folder. And the optional third
+  # argument is a set of non-required options.
+  # TODO: use your own threedi-server repo path here
+  config.vm.synced_folder "/home/jackieleng/git/threedi-verification", "/vagrant"
+  # TODO: optionally use your own buildout eggs and downloads to speed 
+  # up deployment; uncomment and change to the right path
+  # config.vm.synced_folder "/d/dev/buildout/downloads", "/home/vagrant/.buildout/downloads"
+  # config.vm.synced_folder "/d/dev/buildout/eggs", "/home/vagrant/.buildout/eggs"
+end

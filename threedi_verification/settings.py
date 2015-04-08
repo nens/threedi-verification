@@ -6,10 +6,16 @@ import os
 
 SETTINGS_DIR = os.path.dirname(os.path.realpath(__file__))
 BUILDOUT_DIR = os.path.abspath(os.path.join(SETTINGS_DIR, '..'))
-TESTCASES_ROOT = os.path.join(BUILDOUT_DIR, 'testbank')
+
+TESTCASES_ROOT_NAME = 'testbank'
+URBAN_TESTCASES_ROOT_NAME = 'testbank_flow'
+TESTCASES_ROOT = os.path.join(BUILDOUT_DIR, TESTCASES_ROOT_NAME)
+URBAN_TESTCASES_ROOT = os.path.join(BUILDOUT_DIR, URBAN_TESTCASES_ROOT_NAME)
+
 STATIC_ROOT = os.path.join(BUILDOUT_DIR, 'var', 'static')
 STATIC_URL = '/testresults/static/'
 ROOT_URLCONF = 'threedi_verification.urls'
+
 SECRET_KEY = 'sleutel van het secreet'
 DEBUG = True
 ALLOWED_HOSTS = ['jenkins.3di.lizard.net', 'localhost']
@@ -108,6 +114,10 @@ LANGUAGE_CODE = 'nl-nl'
 TIME_ZONE = 'Europe/Amsterdam'
 
 INTERNAL_IPS = ['localhost', '127.0.0.1']
+
+# Libraries (probably) only checked for timestamp
+SUBGRID_LIBRARY_LOCATION = '/opt/3di/bin/subgridf90'
+FLOW_LIBRARY_LOCATION = '/opt/threedicore/bin/flow1d2d'
 
 
 try:

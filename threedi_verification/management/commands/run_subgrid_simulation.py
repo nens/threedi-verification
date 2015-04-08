@@ -14,8 +14,8 @@ from threedi_verification.models import TestCase
 from threedi_verification.models import TestCaseVersion
 from threedi_verification.models import TestRun
 from threedi_verification import verification
+from threedi_verification.models import SUBGRID
 
-LIBRARY_LOCATION = '/opt/3di/bin/subgridf90'
 
 logger = logging.getLogger(__name__)
 
@@ -49,26 +49,28 @@ class Command(BaseCommand):
         self.run_simulation()
 
     def look_at_library(self):
-        """Look at the library and create a new library version, if needed."""
-        modification_timestamp = os.path.getmtime(LIBRARY_LOCATION)
+        """Look at the library and create a new library version, if needed"""
+        modification_timestamp = os.path.getmtime(
+            settings.SUBGRID_LIBRARY_LOCATION)
         last_modified = datetime.datetime.fromtimestamp(
             modification_timestamp)
         self.library_version, created = LibraryVersion.objects.get_or_create(
-            last_modified=last_modified)
+            library=SUBGRID, last_modified=last_modified)
         if created:
             logger.info("Found new library version: %s", self.library_version)
             num_mdu_files = 0
-            for dirpath, dirnames, filenames in os.walk(settings.TESTCASES_ROOT):
+            for dirpath, dirnames, filenames in os.walk(
+                    settings.TESTCASES_ROOT):
                 num_mdu_files += len(
                     [f for f in filenames if f.endswith('.mdu')])
             self.library_version.num_test_cases = num_mdu_files
 
     def look_at_test_case(self):
-        """Look at the test case and create a new version, if needed."""
+        """Look at the test case and create a new TestCaseVersion, if needed"""
         testdir = os.path.dirname(self.full_path)
         relative_path = os.path.relpath(self.full_path,
                                         settings.TESTCASES_ROOT)
-        self.test_case = TestCase.objects.get(filename=relative_path)
+        self.test_case = TestCase.objects.get(path=relative_path)
 
         modification_timestamp = max([
             os.path.getmtime(os.path.join(testdir, filename))
@@ -126,7 +128,7 @@ class Command(BaseCommand):
     def run_simulation(self):
         mdu_report = verification.MduReport(self.full_path)
         start_time = time.time()
-        verification.run_simulation(self.full_path, mdu_report)
+        verification.run_subgrid_simulation(self.full_path, mdu_report)
         self.test_run.duration = (time.time() - start_time)
         self.test_run.report = mdu_report.as_dict()
         self.test_run.save()

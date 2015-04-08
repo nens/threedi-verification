@@ -5,6 +5,9 @@ Changelog of threedi-verification
 0.3 (unreleased)
 ----------------
 
+- Big changes: add functionality for running different libraries, i.e.,
+  at the moment, both subgrid and the new flow library.
+
 - Point update_testbank.sh script to production model databank (hg.lizard.net).
 
 

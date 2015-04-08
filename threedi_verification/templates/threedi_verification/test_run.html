@@ -140,6 +140,18 @@
     </dl>
   {% endif %}
 
+  {% if view.report.input_files %}
+    <h2>Model information <small>for debug purposes</small> </h2>
+    <div>
+    <dl>
+      {% for parameter, value in view.report.input_files %}
+        <dt>{{ parameter }}</dt>
+        <dd><pre>{{ value }}</pre></dd>
+      {% endfor %}
+    </dl>
+    </div>
+  {% endif %}
+
   {% if view.report.csv_contents %}
     <h2>Test instructions <small>for debug purposes</small></h2>
     {% for csv_contents in view.report.csv_contents %}

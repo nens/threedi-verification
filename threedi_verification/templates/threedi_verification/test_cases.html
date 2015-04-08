@@ -2,10 +2,14 @@
 {% load staticfiles %}
 
 {% block main-column %}
+
+<div> Libraries:  [S] = Subgrid, [F] = Flow </div>
+
   <table class="table"
          style="width: auto;">
     <thead>
       <tr>
+        <th>Library</th>
         <th>Test case</th>
         <th>Result of latest test run</th>
         <th>Start time of test run</th>
@@ -14,13 +18,24 @@
     <tbody>
       {% for test_case in view.test_cases %}
         <tr>
+
+          <td>
+            {% if test_case.library_name == 'Subgrid' %}
+                <div class="text-danger text-center">  [S]  </div>
+            {% elif test_case.library_name == 'Flow' %}
+                <div class="text-info text-center"> [F] </div>
+                {% else %}
+                <div class="text-danger text-center"> <strong> UNKNOWN </strong> </div>
+                {% endif %}
+          </td>
+
           <td>
             <a href="{{ test_case.get_absolute_url }}">
               {{ test_case.pretty_name }}
             </a>
           </td>
-          <td>
 
+          <td>
             {% if not test_case.has_csv %}
               <div class="pull-left text-danger"
                    style="font-size: 300%;">
@@ -58,11 +73,12 @@
                 </div>
               </a>
             {% endif %}
-
           </td>
+
           <td>
             {{ test_case.latest_test_run.run_started }}
           </td>
+
         </tr>
       {% endfor %}
     </tbody>

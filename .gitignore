@@ -38,8 +38,20 @@ etc/*.nginx.conf
 etc/*.logrotate
 
 testbank
+testbank_flow
 .DS_Store
 
 bower_components/
 
 buildout.cfg
+
+# Vagrant
+Vagrantfile
+.vagrant*
+
+# Ansible
+dev
+
+# python flow log
+pyflow.log
+pyflow.log.*
