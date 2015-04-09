@@ -774,15 +774,7 @@ def check_csv(csv_filename, netcdf_path=None, mdu_report=None):
     instructions = list(csv.DictReader(open(csv_filename), delimiter=';'))
     mdu_report.record_instructions(instructions, csv_filename)
 
-    # Flow needs this structure:
-    # netcdf_filename = 'results/subgrid_map.nc'
-    if netcdf_path:
-        netcdf_filename = netcdf_path
-    elif 'his' in csv_filename:
-        netcdf_filename = 'subgrid_his.nc'
-    else:
-        netcdf_filename = 'subgrid_map.nc'
-    with Dataset(netcdf_filename) as dataset:
+    with Dataset(netcdf_path) as dataset:
         for test_number, instruction in enumerate(instructions):
             instruction_id = csv_filename[:-4] + '-' + str(test_number)
             instruction_report = mdu_report.instruction_reports[instruction_id]
@@ -876,8 +868,8 @@ def run_flow_simulation(model_dir, inp_report=None, verbose=False):
         csv_filenames = [f for f in os.listdir('.') if f.endswith('.csv')]
         for csv_filename in csv_filenames:
             logger.info("Reading instructions from %s", csv_filename)
-            check_csv(csv_filename, netcdf_path='results/subgrid_map.nc',
-                      mdu_report=inp_report)
+            netcdf_path='results/subgrid_map.nc'
+            check_csv(csv_filename, netcdf_path, mdu_report=inp_report)
 
     # Cleanup: remove results dir
     shutil.rmtree('results')
@@ -933,7 +925,11 @@ def run_subgrid_simulation(mdu_filepath, mdu_report=None, verbose=False):
         csv_filenames = [f for f in os.listdir('.') if f.endswith('.csv')]
         for csv_filename in csv_filenames:
             logger.info("Reading instructions from %s", csv_filename)
-            check_csv(csv_filename, mdu_report=mdu_report)
+            if 'his' in csv_filename:
+                netcdf_path = 'subgrid_his.nc'
+            else:
+                netcdf_path = 'subgrid_map.nc'
+            check_csv(csv_filename, netcdf_path, mdu_report=mdu_report)
 
     # Cleanup: zap *.nc files.
     for nc in [f for f in os.listdir('.') if f.endswith('.nc')]:
