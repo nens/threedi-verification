@@ -12,13 +12,16 @@ import datetime
 import json
 import logging
 import os
-import shutil
 import glob
 
 from django.conf import settings
 from jinja2 import Environment, PackageLoader
 from netCDF4 import Dataset
 import numpy as np
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 from threedi_verification.utils import system
 
@@ -379,6 +382,9 @@ class Report(object):
 
 
 def _desired_time_index(instruction, instruction_report, dataset):
+    """Look up the time (array) index (or indices in case of SUM) in the
+       netcdf, based on the time value
+    """
     # Time
     desired_time = instruction['time']
     if desired_time == 'SUM':
@@ -691,12 +697,16 @@ def check_map(instruction, instruction_report, dataset):
                 desired)
 
 
-def check_map_nflow(instruction, instruction_report, dataset):
+def check_map_nflow(instruction, instruction_report, dataset,
+                    instruction_id=None):
     """
+    Check an instruction where the node is already given (nFlowElem, nFlowLink)
+
     Params:
         instruction: a single csv instruction (type: dict)
         instruction_report: one line of the report (generated from instruction)
         dataset: the netcdf dataset
+        instruction_id: generated string of the instruction
     """
     logger.debug("Checking nflow")
     # Admin stuff.
@@ -731,7 +741,7 @@ def check_map_nflow(instruction, instruction_report, dataset):
     if instruction.get('margin'):
         instruction_report.margin = instruction['margin']
 
-    # nflow
+    # nflow (get node number(s))
     if 'nFlowElem' in instruction:
         location_index = instruction['nFlowElem']
         logger.debug("Using nFlowElem %s", location_index)
@@ -774,6 +784,48 @@ def check_map_nflow(instruction, instruction_report, dataset):
                 parameter_name,
                 desired)
 
+    # make plots of the found result
+    if instruction_id:
+        make_time_plot(dataset, parameter_name, desired_time_index,
+                       location_index, imgname=instruction_id)
+
+
+def make_time_plot(dataset, parameter, time_idx, location_idx,
+                   imgname=None):
+    """Make a nice plot of the parameter w.r.t. time"""
+    if not imgname:
+        raise Exception("No image name given")
+    values = dataset.variables[parameter]  # -> values[time_idx, location_idx]
+    logger.debug("Shape before plotting: %r", values.shape)
+
+    # determine x axis limits
+    n_time_indices = values.shape[0]
+    t_domain_size = int(n_time_indices/100)   # the 100 (== 1%) is arbitrary
+    t_lower = time_idx - t_domain_size if time_idx - t_domain_size >= 0 else 0
+    t_upper = time_idx + t_domain_size + 1 if \
+        time_idx + t_domain_size + 1 <= n_time_indices else n_time_indices
+
+    # plot values + found value
+    plt.plot(time_idx, values[time_idx, location_idx], 'ro')
+    plt.plot(range(t_lower, t_upper), values[t_lower:t_upper, location_idx])
+
+    # plot a vertical dashed line from the found value to x axis
+    x = (time_idx, time_idx)
+    y = (0, values[time_idx, location_idx])
+    plt.plot(x, y, 'r--')
+
+    # axis
+    plt.locator_params(axis='y', nbins=4, tight=False)  # reduce ticks
+    # TODO: scaling needs some work (horizontal lines don't scale well)
+    #plt.autoscale(enable=True, axis='y', tight=False)
+
+    # save it
+    F = plt.gcf()
+    DefaultSize = F.get_size_inches()
+    F.set_size_inches((DefaultSize[0]*0.2, DefaultSize[1]*0.2))
+    F.savefig(imgname, dpi=50, bbox_inches='tight')
+    plt.close()
+
 
 def check_csv(csv_filename, netcdf_path=None, mdu_report=None, is_his=False):
     """Parse the csvs as "instructions" and run the instructions on the netcdf
@@ -798,7 +850,8 @@ def check_csv(csv_filename, netcdf_path=None, mdu_report=None, is_his=False):
                 check_his(instruction, instruction_report, dataset)
             else:
                 if ('nFlowLink' in instruction or 'nFlowElem' in instruction):
-                    check_map_nflow(instruction, instruction_report, dataset)
+                    check_map_nflow(instruction, instruction_report, dataset,
+                                    instruction_id=instruction_id)
                 else:
                     check_map(instruction, instruction_report, dataset)
 
