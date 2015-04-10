@@ -692,6 +692,12 @@ def check_map(instruction, instruction_report, dataset):
 
 
 def check_map_nflow(instruction, instruction_report, dataset):
+    """
+    Params:
+        instruction: a single csv instruction (type: dict)
+        instruction_report: one line of the report (generated from instruction)
+        dataset: the netcdf dataset
+    """
     logger.debug("Checking nflow")
     # Admin stuff.
     instruction_report.title = instruction['note']
@@ -723,8 +729,7 @@ def check_map_nflow(instruction, instruction_report, dataset):
 
     # Margin
     if instruction.get('margin'):
-        margin = instruction['margin']
-        instruction_report.margin = margin
+        instruction_report.margin = instruction['margin']
 
     # nflow
     if 'nFlowElem' in instruction:
@@ -770,15 +775,26 @@ def check_map_nflow(instruction, instruction_report, dataset):
                 desired)
 
 
-def check_csv(csv_filename, netcdf_path=None, mdu_report=None):
-    instructions = list(csv.DictReader(open(csv_filename), delimiter=';'))
+def check_csv(csv_filename, netcdf_path=None, mdu_report=None, is_his=False):
+    """Parse the csvs as "instructions" and run the instructions on the netcdf
+       Params:
+            csv_filename: name of csv file (we are in the model folder)]
+            netcdf_path: path to netcdf file
+            mdu_report: MduReport or InpReport (thing shown in testrun view)
+            is_his: boolean checking if the netcdf is called 'subgrid_his.nc'
+    """
+    with open(csv_filename) as csvfile:
+        instructions = list(csv.DictReader(csvfile, delimiter=';'))
     mdu_report.record_instructions(instructions, csv_filename)
 
     with Dataset(netcdf_path) as dataset:
         for test_number, instruction in enumerate(instructions):
-            instruction_id = csv_filename[:-4] + '-' + str(test_number)
+            instruction_id = "{} - {}".format(
+                os.path.splitext(csv_filename)[0], str(test_number))
             instruction_report = mdu_report.instruction_reports[instruction_id]
-            if 'his' in csv_filename:
+
+            # The checks are built around some ad hoc patterns:
+            if is_his:
                 check_his(instruction, instruction_report, dataset)
             else:
                 if ('nFlowLink' in instruction or 'nFlowElem' in instruction):
@@ -868,11 +884,14 @@ def run_flow_simulation(model_dir, inp_report=None, verbose=False):
         csv_filenames = [f for f in os.listdir('.') if f.endswith('.csv')]
         for csv_filename in csv_filenames:
             logger.info("Reading instructions from %s", csv_filename)
-            netcdf_path='results/subgrid_map.nc'
+            netcdf_path = 'results/subgrid_map.nc'
             check_csv(csv_filename, netcdf_path, mdu_report=inp_report)
 
-    # Cleanup: remove results dir
-    shutil.rmtree('results')
+    # Cleanup
+    for f in os.listdir('results'):
+        item = os.path.join('results', f)
+        if os.path.isfile(item):
+            os.remove(item)
 
     os.chdir(original_dir)
 
@@ -925,11 +944,14 @@ def run_subgrid_simulation(mdu_filepath, mdu_report=None, verbose=False):
         csv_filenames = [f for f in os.listdir('.') if f.endswith('.csv')]
         for csv_filename in csv_filenames:
             logger.info("Reading instructions from %s", csv_filename)
+            is_his = False
             if 'his' in csv_filename:
                 netcdf_path = 'subgrid_his.nc'
+                is_his = True
             else:
                 netcdf_path = 'subgrid_map.nc'
-            check_csv(csv_filename, netcdf_path, mdu_report=mdu_report)
+            check_csv(csv_filename, netcdf_path, mdu_report=mdu_report,
+                      is_his=is_his)
 
     # Cleanup: zap *.nc files.
     for nc in [f for f in os.listdir('.') if f.endswith('.nc')]:
