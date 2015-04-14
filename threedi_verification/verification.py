@@ -137,9 +137,7 @@ class InstructionReport(object):
 
     @property
     def epsilon_found(self):
-        if (self.found is None
-            or self.desired is None
-            or self.desired == 'nan'):
+        if self.found is None or self.desired is None or self.desired == 'nan':
             return
         return abs(self.found - self.desired)
 
