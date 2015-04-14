@@ -13,6 +13,7 @@ import json
 import logging
 import os
 import glob
+import math
 
 from django.conf import settings
 from jinja2 import Environment, PackageLoader
@@ -78,6 +79,8 @@ class InstructionReport(object):
         self.title = None
         self.invalid_desired_value = None
         self.what = []
+        self.instruction_id = None
+        self.image_relpath = None
 
     def __cmp__(self, other):
         return cmp(self.id, other.id)
@@ -99,6 +102,8 @@ class InstructionReport(object):
             what=self.what,
             epsilon_found=unmask(self.epsilon_found),
             margin_found=unmask(self.margin_found),
+            instruction_id=self.instruction_id,
+            image_relpath=self.image_relpath,
         )
 
     @property
@@ -593,7 +598,7 @@ def check_his(instruction, instruction_report, dataset):
                     desired)
 
 
-def check_map(instruction, instruction_report, dataset):
+def check_map(instruction, instruction_report, dataset, instruction_id=None):
     logger.debug("Checking regular map")
     # Admin stuff
     instruction_report.title = instruction['note']
@@ -695,6 +700,8 @@ def check_map(instruction, instruction_report, dataset):
                 found,
                 parameter_name,
                 desired)
+    plot_it(dataset, parameter_name, desired_time_index, location_index,
+            instruction_report, instruction_id=instruction_id)
 
 
 def check_map_nflow(instruction, instruction_report, dataset,
@@ -783,48 +790,99 @@ def check_map_nflow(instruction, instruction_report, dataset,
                 found,
                 parameter_name,
                 desired)
+    plot_it(dataset, parameter_name, desired_time_index, location_index,
+            instruction_report, instruction_id=instruction_id)
 
-    # make plots of the found result
+
+def plot_it(dataset, parameter_name, desired_time_index, location_index,
+            instruction_report, instruction_id=None):
+    """Helper function for calling the actual plotting function"""
     if instruction_id:
+        # construct MEDIA_ROOT path for saving images while preserving model
+        # dir structure
+        cwd = os.getcwd()
+        model_relpath = os.path.relpath(cwd, settings.BUILDOUT_DIR)
+        img_path = os.path.join(
+            settings.MEDIA_ROOT, model_relpath, instruction_id + '.png')
+        instruction_report.image_relpath = os.path.relpath(img_path,
+                                                           settings.MEDIA_ROOT)
         make_time_plot(dataset, parameter_name, desired_time_index,
-                       location_index, imgname=instruction_id)
+                       location_index, imgname=img_path)
 
 
 def make_time_plot(dataset, parameter, time_idx, location_idx,
                    imgname=None):
-    """Make a nice plot of the parameter w.r.t. time"""
+    """
+    Make a nice plot of the parameter w.r.t. time
+
+    Params:
+        dataset: netcdf dataset
+        parameter: the quantity
+        time_idx: index of the time value (POSSIBLY also a range if 'SUM')
+        location_idx: the node index; this can be a range of indices if 'SUM'
+            option is chosen
+        imgname: full path to img file
+    """
+    # TODO: check if 'SUM' is used
+
     if not imgname:
         raise Exception("No image name given")
     values = dataset.variables[parameter]  # -> values[time_idx, location_idx]
     logger.debug("Shape before plotting: %r", values.shape)
 
-    # determine x axis limits
+    # determine x, y axis limits (pretty ad hoc)
     n_time_indices = values.shape[0]
-    t_domain_size = int(n_time_indices/100)   # the 100 (== 1%) is arbitrary
-    t_lower = time_idx - t_domain_size if time_idx - t_domain_size >= 0 else 0
+    t_domain_size = n_time_indices/10.   # the 100 (== 1%) is arbitrary
+    t_lower = time_idx - t_domain_size if time_idx - t_domain_size >= 0 else \
+        time_idx - t_domain_size * 0.25
     t_upper = time_idx + t_domain_size + 1 if \
-        time_idx + t_domain_size + 1 <= n_time_indices else n_time_indices
+        time_idx + t_domain_size + 1 <= n_time_indices else \
+        n_time_indices + t_domain_size * 0.25
+    t_lower = math.floor(t_lower)
+    t_upper = math.ceil(t_upper)
+    # ymax = values[:, location_idx].max()
+    # ymin = values[:, location_idx].min()
+    # yrange = abs(ymax - ymin) if ymax - ymin > 0 else max(abs(ymax), abs(ymin))
+    # y_lower = ymin - abs(0.2*yrange)
+    # y_upper = ymax + abs(0.2*yrange)
 
     # plot values + found value
+    plt.plot(values[:, location_idx])
     plt.plot(time_idx, values[time_idx, location_idx], 'ro')
-    plt.plot(range(t_lower, t_upper), values[t_lower:t_upper, location_idx])
 
     # plot a vertical dashed line from the found value to x axis
     x = (time_idx, time_idx)
     y = (0, values[time_idx, location_idx])
     plt.plot(x, y, 'r--')
 
-    # axis
-    plt.locator_params(axis='y', nbins=4, tight=False)  # reduce ticks
-    # TODO: scaling needs some work (horizontal lines don't scale well)
-    #plt.autoscale(enable=True, axis='y', tight=False)
+    # adjust axes
+    plt.xlim(t_lower, t_upper)
+    # plt.ylim(y_lower, y_upper)
+
+    # ticks
+    plt.locator_params(axis='x', nbins=4, tight=False)  # reduce ticks
+    plt.locator_params(axis='y', nbins=5, tight=False)  # reduce ticks
+
+    # make dir if it doesn't exist
+    dir_path = os.path.dirname(imgname)
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
 
     # save it
     F = plt.gcf()
     DefaultSize = F.get_size_inches()
     F.set_size_inches((DefaultSize[0]*0.2, DefaultSize[1]*0.2))
     F.savefig(imgname, dpi=50, bbox_inches='tight')
-    plt.close()
+    plt.close("all")
+
+
+def make_spatial_plot():
+    pass
+    # xcc = dataset.variables['FlowElem_xcc']
+    # ycc = dataset.variables['FlowElem_ycc']
+    # v = values[:,-1]
+    # N = matplotlib.colors.Normalize(9.5-(1e-6), 9.5 + (1e-6))
+    # plt.scatter(xcc, ycc, c=matplotlib.cm.hsv(N(v)), s=10, edgecolor='none')
 
 
 def check_csv(csv_filename, netcdf_path=None, mdu_report=None, is_his=False):
@@ -844,6 +902,7 @@ def check_csv(csv_filename, netcdf_path=None, mdu_report=None, is_his=False):
             instruction_id = "{} - {}".format(
                 os.path.splitext(csv_filename)[0], str(test_number))
             instruction_report = mdu_report.instruction_reports[instruction_id]
+            instruction_report.instruction_id = instruction_id
 
             # The checks are built around some ad hoc patterns:
             if is_his:
@@ -853,7 +912,8 @@ def check_csv(csv_filename, netcdf_path=None, mdu_report=None, is_his=False):
                     check_map_nflow(instruction, instruction_report, dataset,
                                     instruction_id=instruction_id)
                 else:
-                    check_map(instruction, instruction_report, dataset)
+                    check_map(instruction, instruction_report, dataset,
+                              instruction_id=instruction_id)
 
 
 def model_parameters(mdu_filepath):

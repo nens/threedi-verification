@@ -14,6 +14,10 @@ URBAN_TESTCASES_ROOT = os.path.join(BUILDOUT_DIR, URBAN_TESTCASES_ROOT_NAME)
 
 STATIC_ROOT = os.path.join(BUILDOUT_DIR, 'var', 'static')
 STATIC_URL = '/testresults/static/'
+
+MEDIA_ROOT = os.path.join(BUILDOUT_DIR, 'var', 'media')
+MEDIA_URL = '/testresults/media/'
+
 ROOT_URLCONF = 'threedi_verification.urls'
 
 SECRET_KEY = 'sleutel van het secreet'
@@ -58,6 +62,7 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 STATICFILES_DIRS = [
     os.path.join(BUILDOUT_DIR, 'bower_components'),
     # ^^^ bower-managed files.
+#    MEDIA_ROOT,
 ]
 
 LOGGING = {

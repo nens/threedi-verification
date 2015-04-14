@@ -1,8 +1,9 @@
 from django.conf.urls import patterns
 from django.conf.urls import url
+from django.conf.urls.static import static
 from django.contrib import admin
 
-from threedi_verification import views
+from threedi_verification import views, settings
 
 admin.autodiscover()
 
@@ -34,3 +35,8 @@ urlpatterns = patterns(
         views.plain_log,
         name='threedi_verification.log'),
 )
+
+# Serving media during development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL,
+                          document_root=settings.MEDIA_ROOT)

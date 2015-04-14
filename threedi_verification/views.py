@@ -6,6 +6,7 @@ from collections import OrderedDict
 import itertools
 import logging
 
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -26,6 +27,13 @@ class BaseView(TemplateView):
     subtitle = None
     back_link = None
     back_link_title = None
+
+    # some hacky way to get the {% debug %} var without RequestContext things
+    def get_context_data(self, **kwargs):
+        context = super(BaseView, self).get_context_data(**kwargs)
+        context['DEBUG'] = settings.DEBUG
+
+        return context
 
 
 class HomeView(BaseView):
