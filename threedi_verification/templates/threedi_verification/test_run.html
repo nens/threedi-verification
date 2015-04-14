@@ -126,14 +126,10 @@
               {{ instruction.title }}
             </td>
             <td>
-                {%if DEBUG %}
-                    {% if instruction.image_relpath %}
-                        <img src="{{ MEDIA_URL }}{{ instruction.image_relpath }}" alt="{{ instruction.instruction_id }}"/>
-                    {% else %}
-                        <span> no pic </span>
-                    {% endif %}
+                {% if instruction.image_relpath %}
+                    <img src="{{ MEDIA_URL }}{{ instruction.image_relpath }}" alt="{{ instruction.instruction_id }}"/>
                 {% else %}
-                    <span> No plot because !(DEBUG) </span>
+                    <span> no pic </span>
                 {% endif %}
             </td>
           </tr>
