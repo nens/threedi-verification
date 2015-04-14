@@ -840,11 +840,6 @@ def make_time_plot(dataset, parameter, time_idx, location_idx,
         n_time_indices + t_domain_size * 0.25
     t_lower = math.floor(t_lower)
     t_upper = math.ceil(t_upper)
-    # ymax = values[:, location_idx].max()
-    # ymin = values[:, location_idx].min()
-    # yrange = abs(ymax - ymin) if ymax - ymin > 0 else max(abs(ymax), abs(ymin))
-    # y_lower = ymin - abs(0.2*yrange)
-    # y_upper = ymax + abs(0.2*yrange)
 
     # plot values + found value
     plt.plot(values[:, location_idx])
@@ -857,7 +852,6 @@ def make_time_plot(dataset, parameter, time_idx, location_idx,
 
     # adjust axes
     plt.xlim(t_lower, t_upper)
-    # plt.ylim(y_lower, y_upper)
 
     # ticks
     plt.locator_params(axis='x', nbins=4, tight=False)  # reduce ticks
