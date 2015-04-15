@@ -12,13 +12,16 @@ import datetime
 import json
 import logging
 import os
-import shutil
 import glob
-
+import math
 from django.conf import settings
 from jinja2 import Environment, PackageLoader
 from netCDF4 import Dataset
 import numpy as np
+
+import matplotlib
+matplotlib.use('Agg')  # needs to be at top of module
+import matplotlib.pyplot as plt
 
 from threedi_verification.utils import system
 
@@ -75,6 +78,8 @@ class InstructionReport(object):
         self.title = None
         self.invalid_desired_value = None
         self.what = []
+        self.instruction_id = None
+        self.image_relpath = None
 
     def __cmp__(self, other):
         return cmp(self.id, other.id)
@@ -96,6 +101,8 @@ class InstructionReport(object):
             what=self.what,
             epsilon_found=unmask(self.epsilon_found),
             margin_found=unmask(self.margin_found),
+            instruction_id=self.instruction_id,
+            image_relpath=self.image_relpath,
         )
 
     @property
@@ -129,9 +136,8 @@ class InstructionReport(object):
 
     @property
     def epsilon_found(self):
-        if (self.found is None
-            or self.desired is None
-            or self.desired == 'nan'):
+        if (self.found is None or self.desired is None
+                or self.desired == 'nan'):
             return
         return abs(self.found - self.desired)
 
@@ -379,6 +385,9 @@ class Report(object):
 
 
 def _desired_time_index(instruction, instruction_report, dataset):
+    """Look up the time (array) index (or indices in case of SUM) in the
+       netcdf, based on the time value
+    """
     # Time
     desired_time = instruction['time']
     if desired_time == 'SUM':
@@ -587,7 +596,7 @@ def check_his(instruction, instruction_report, dataset):
                     desired)
 
 
-def check_map(instruction, instruction_report, dataset):
+def check_map(instruction, instruction_report, dataset, instruction_id=None):
     logger.debug("Checking regular map")
     # Admin stuff
     instruction_report.title = instruction['note']
@@ -689,9 +698,21 @@ def check_map(instruction, instruction_report, dataset):
                 found,
                 parameter_name,
                 desired)
+    plot_it(dataset, parameter_name, desired_time_index, location_index,
+            instruction_report, instruction_id=instruction_id)
 
 
-def check_map_nflow(instruction, instruction_report, dataset):
+def check_map_nflow(instruction, instruction_report, dataset,
+                    instruction_id=None):
+    """
+    Check an instruction where the node is already given (nFlowElem, nFlowLink)
+
+    Params:
+        instruction: a single csv instruction (type: dict)
+        instruction_report: one line of the report (generated from instruction)
+        dataset: the netcdf dataset
+        instruction_id: generated string of the instruction
+    """
     logger.debug("Checking nflow")
     # Admin stuff.
     instruction_report.title = instruction['note']
@@ -723,10 +744,9 @@ def check_map_nflow(instruction, instruction_report, dataset):
 
     # Margin
     if instruction.get('margin'):
-        margin = instruction['margin']
-        instruction_report.margin = margin
+        instruction_report.margin = instruction['margin']
 
-    # nflow
+    # nflow (get node number(s))
     if 'nFlowElem' in instruction:
         location_index = instruction['nFlowElem']
         logger.debug("Using nFlowElem %s", location_index)
@@ -768,31 +788,131 @@ def check_map_nflow(instruction, instruction_report, dataset):
                 found,
                 parameter_name,
                 desired)
+    plot_it(dataset, parameter_name, desired_time_index, location_index,
+            instruction_report, instruction_id=instruction_id)
 
 
-def check_csv(csv_filename, netcdf_path=None, mdu_report=None):
-    instructions = list(csv.DictReader(open(csv_filename), delimiter=';'))
+def plot_it(dataset, parameter_name, desired_time_index, location_index,
+            instruction_report, instruction_id=None):
+    """Helper function for calling the actual plotting function"""
+    if instruction_id:
+        # construct MEDIA_ROOT path for saving images while preserving model
+        # dir structure
+        cwd = os.getcwd()
+        model_relpath = os.path.relpath(cwd, settings.BUILDOUT_DIR)
+        img_path = os.path.join(
+            settings.MEDIA_ROOT, model_relpath, instruction_id + '.png')
+        instruction_report.image_relpath = os.path.relpath(img_path,
+                                                           settings.MEDIA_ROOT)
+        make_time_plot(dataset, parameter_name, desired_time_index,
+                       location_index, imgname=img_path)
+
+
+def make_time_plot(dataset, parameter, time_idx, location_idx,
+                   imgname=None):
+    """
+    Make a nice plot of the parameter w.r.t. time
+
+    Params:
+        dataset: netcdf dataset
+        parameter: the quantity
+        time_idx: index of the time value (POSSIBLY also a range if 'SUM')
+        location_idx: the node index; this can be a range of indices if 'SUM'
+            option is chosen
+        imgname: full path to img file
+    """
+    # TODO: check if 'SUM' is used
+
+    if not imgname:
+        raise Exception("No image name given")
+    values = dataset.variables[parameter]  # -> values[time_idx, location_idx]
+    logger.debug("Shape before plotting: %r", values.shape)
+
+    # determine x, y axis limits (pretty ad hoc)
+    n_time_indices = values.shape[0]
+    t_domain_size = n_time_indices/10.   # the fraction is arbitrary
+    _t_lower = time_idx - t_domain_size if time_idx - t_domain_size >= 0 else \
+        time_idx - t_domain_size * 0.2
+    _t_upper = time_idx + t_domain_size + 1 if \
+        time_idx + t_domain_size + 1 <= n_time_indices else \
+        time_idx + t_domain_size * 0.2
+    t_lower = math.floor(_t_lower)
+    t_upper = math.ceil(_t_upper)
+    ymax = values[:, location_idx].max()
+    ymin = values[:, location_idx].min()
+    yrange = abs(ymax - ymin) if ymax - ymin > 0 else max(abs(ymax), abs(ymin))
+    y_lower = ymin - abs(0.25*yrange)
+    y_upper = ymax + abs(0.25*yrange)
+
+    # plot values + found value
+    plt.plot(values[:, location_idx])
+    plt.plot(time_idx, values[time_idx, location_idx], 'ro')
+
+    # plot a vertical dashed line from the found value to x axis
+    x = (time_idx, time_idx)
+    y = (0, values[time_idx, location_idx])
+    plt.plot(x, y, 'r--')
+
+    # adjust axes
+    plt.xlim(t_lower, t_upper)
+    plt.ylim(y_lower, y_upper)
+    plt.ticklabel_format(useOffset=False)
+
+    # ticks
+    plt.locator_params(axis='x', nbins=4, tight=False)  # reduce ticks
+    plt.locator_params(axis='y', nbins=5, tight=False)  # reduce ticks
+
+    # make dir if it doesn't exist
+    dir_path = os.path.dirname(imgname)
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+
+    # save it
+    F = plt.gcf()
+    DefaultSize = F.get_size_inches()
+    F.set_size_inches((DefaultSize[0]*0.2, DefaultSize[1]*0.2))
+    F.savefig(imgname, dpi=50, bbox_inches='tight')
+    plt.close("all")
+
+
+def make_spatial_plot():
+    pass
+    # xcc = dataset.variables['FlowElem_xcc']
+    # ycc = dataset.variables['FlowElem_ycc']
+    # v = values[:,-1]
+    # N = matplotlib.colors.Normalize(9.5-(1e-6), 9.5 + (1e-6))
+    # plt.scatter(xcc, ycc, c=matplotlib.cm.hsv(N(v)), s=10, edgecolor='none')
+
+
+def check_csv(csv_filename, netcdf_path=None, mdu_report=None, is_his=False):
+    """Parse the csvs as "instructions" and run the instructions on the netcdf
+       Params:
+            csv_filename: name of csv file (we are in the model folder)]
+            netcdf_path: path to netcdf file
+            mdu_report: MduReport or InpReport (thing shown in testrun view)
+            is_his: boolean checking if the netcdf is called 'subgrid_his.nc'
+    """
+    with open(csv_filename) as csvfile:
+        instructions = list(csv.DictReader(csvfile, delimiter=';'))
     mdu_report.record_instructions(instructions, csv_filename)
 
-    # Flow needs this structure:
-    # netcdf_filename = 'results/subgrid_map.nc'
-    if netcdf_path:
-        netcdf_filename = netcdf_path
-    elif 'his' in csv_filename:
-        netcdf_filename = 'subgrid_his.nc'
-    else:
-        netcdf_filename = 'subgrid_map.nc'
-    with Dataset(netcdf_filename) as dataset:
+    with Dataset(netcdf_path) as dataset:
         for test_number, instruction in enumerate(instructions):
-            instruction_id = csv_filename[:-4] + '-' + str(test_number)
+            instruction_id = "{} - {}".format(
+                os.path.splitext(csv_filename)[0], str(test_number))
             instruction_report = mdu_report.instruction_reports[instruction_id]
-            if 'his' in csv_filename:
+            instruction_report.instruction_id = instruction_id
+
+            # The checks are built around some ad hoc patterns:
+            if is_his:
                 check_his(instruction, instruction_report, dataset)
             else:
                 if ('nFlowLink' in instruction or 'nFlowElem' in instruction):
-                    check_map_nflow(instruction, instruction_report, dataset)
+                    check_map_nflow(instruction, instruction_report, dataset,
+                                    instruction_id=instruction_id)
                 else:
-                    check_map(instruction, instruction_report, dataset)
+                    check_map(instruction, instruction_report, dataset,
+                              instruction_id=instruction_id)
 
 
 def model_parameters(mdu_filepath):
@@ -876,11 +996,14 @@ def run_flow_simulation(model_dir, inp_report=None, verbose=False):
         csv_filenames = [f for f in os.listdir('.') if f.endswith('.csv')]
         for csv_filename in csv_filenames:
             logger.info("Reading instructions from %s", csv_filename)
-            check_csv(csv_filename, netcdf_path='results/subgrid_map.nc',
-                      mdu_report=inp_report)
+            netcdf_path = 'results/subgrid_map.nc'
+            check_csv(csv_filename, netcdf_path, mdu_report=inp_report)
 
-    # Cleanup: remove results dir
-    shutil.rmtree('results')
+    # Cleanup
+    for f in os.listdir('results'):
+        item = os.path.join('results', f)
+        if os.path.isfile(item):
+            os.remove(item)
 
     os.chdir(original_dir)
 
@@ -933,7 +1056,14 @@ def run_subgrid_simulation(mdu_filepath, mdu_report=None, verbose=False):
         csv_filenames = [f for f in os.listdir('.') if f.endswith('.csv')]
         for csv_filename in csv_filenames:
             logger.info("Reading instructions from %s", csv_filename)
-            check_csv(csv_filename, mdu_report=mdu_report)
+            is_his = False
+            if 'his' in csv_filename:
+                netcdf_path = 'subgrid_his.nc'
+                is_his = True
+            else:
+                netcdf_path = 'subgrid_map.nc'
+            check_csv(csv_filename, netcdf_path, mdu_report=mdu_report,
+                      is_his=is_his)
 
     # Cleanup: zap *.nc files.
     for nc in [f for f in os.listdir('.') if f.endswith('.nc')]:
