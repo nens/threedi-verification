@@ -14,14 +14,13 @@ import logging
 import os
 import glob
 import math
-
 from django.conf import settings
 from jinja2 import Environment, PackageLoader
 from netCDF4 import Dataset
 import numpy as np
 
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use('Agg')  # needs to be at top of module
 import matplotlib.pyplot as plt
 
 from threedi_verification.utils import system
@@ -137,7 +136,8 @@ class InstructionReport(object):
 
     @property
     def epsilon_found(self):
-        if self.found is None or self.desired is None or self.desired == 'nan':
+        if (self.found is None or self.desired is None
+                or self.desired == 'nan'):
             return
         return abs(self.found - self.desired)
 
@@ -830,14 +830,19 @@ def make_time_plot(dataset, parameter, time_idx, location_idx,
 
     # determine x, y axis limits (pretty ad hoc)
     n_time_indices = values.shape[0]
-    t_domain_size = n_time_indices/10.   # the 100 (== 1%) is arbitrary
-    t_lower = time_idx - t_domain_size if time_idx - t_domain_size >= 0 else \
-        time_idx - t_domain_size * 0.25
-    t_upper = time_idx + t_domain_size + 1 if \
+    t_domain_size = n_time_indices/10.   # the fraction is arbitrary
+    _t_lower = time_idx - t_domain_size if time_idx - t_domain_size >= 0 else \
+        time_idx - t_domain_size * 0.2
+    _t_upper = time_idx + t_domain_size + 1 if \
         time_idx + t_domain_size + 1 <= n_time_indices else \
-        n_time_indices + t_domain_size * 0.25
-    t_lower = math.floor(t_lower)
-    t_upper = math.ceil(t_upper)
+        time_idx + t_domain_size * 0.2
+    t_lower = math.floor(_t_lower)
+    t_upper = math.ceil(_t_upper)
+    ymax = values[:, location_idx].max()
+    ymin = values[:, location_idx].min()
+    yrange = abs(ymax - ymin) if ymax - ymin > 0 else max(abs(ymax), abs(ymin))
+    y_lower = ymin - abs(0.25*yrange)
+    y_upper = ymax + abs(0.25*yrange)
 
     # plot values + found value
     plt.plot(values[:, location_idx])
@@ -850,6 +855,8 @@ def make_time_plot(dataset, parameter, time_idx, location_idx,
 
     # adjust axes
     plt.xlim(t_lower, t_upper)
+    plt.ylim(y_lower, y_upper)
+    plt.ticklabel_format(useOffset=False)
 
     # ticks
     plt.locator_params(axis='x', nbins=4, tight=False)  # reduce ticks
