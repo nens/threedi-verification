@@ -795,6 +795,17 @@ def check_map_nflow(instruction, instruction_report, dataset,
 def plot_it(dataset, parameter_name, desired_time_index, location_index,
             instruction_report, instruction_id=None):
     """Helper function for calling the actual plotting function"""
+    if location_index == 'SUM':
+        # TODO: implement if location index is a range of values
+        logger.debug("Can't plot because of 'SUM' of location_index")
+        logger.debug("location_index: %s", location_index)
+        return
+    if not np.isscalar(desired_time_index):
+        # TODO: implement plotting when using a range of time values
+        logger.debug("Can't plot because of 'SUM' of desired_time_index")
+        logger.debug("desired_time_index: %s", desired_time_index)
+        return
+
     if instruction_id:
         # construct MEDIA_ROOT path for saving images while preserving model
         # dir structure
@@ -816,12 +827,14 @@ def make_time_plot(dataset, parameter, time_idx, location_idx,
     Params:
         dataset: netcdf dataset
         parameter: the quantity
-        time_idx: index of the time value (POSSIBLY also a range if 'SUM')
+        time_idx: index of the time value or a list of indices if 'SUM' is
+                  used!
         location_idx: the node index; this can be a range of indices if 'SUM'
-            option is chosen
+                      option is chosen!
         imgname: full path to img file
     """
-    # TODO: check if 'SUM' is used
+    # TODO: check if 'SUM' is used; if so, time_idx is not an integer but a
+    # list of ints!
 
     if not imgname:
         raise Exception("No image name given")
