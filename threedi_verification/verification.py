@@ -795,7 +795,7 @@ def check_map_nflow(instruction, instruction_report, dataset,
 def plot_it(dataset, parameter_name, desired_time_index, location_index,
             instruction_report, instruction_id=None):
     """Helper function for calling the actual plotting function"""
-    if location_index == 'SUM':
+    if not np.isscalar(location_index):  # type(location_index) == slice
         # TODO: implement if location index is a range of values
         logger.debug("Can't plot because of 'SUM' of location_index")
         logger.debug("location_index: %s", location_index)
