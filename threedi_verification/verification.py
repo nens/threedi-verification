@@ -1012,9 +1012,14 @@ def run_flow_simulation(model_dir, inp_report=None, verbose=False):
             netcdf_path = 'results/subgrid_map.nc'
             check_csv(csv_filename, netcdf_path, mdu_report=inp_report)
 
-    # Cleanup
+    # Cleanup results
     for f in os.listdir('results'):
         item = os.path.join('results', f)
+        if os.path.isfile(item):
+            os.remove(item)
+    # Also delete makegrid files because of interference with 'hg update'
+    for f in os.listdir('preprocessed'):
+        item = os.path.join('preprocessed', f)
         if os.path.isfile(item):
             os.remove(item)
 
