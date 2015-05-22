@@ -84,7 +84,11 @@ class Command(BaseCommand):
         timestamps1 = [
             os.path.getmtime(os.path.join(model_subdir, filename))
             for filename in os.listdir(model_subdir)]
-        modification_timestamps = timestamps1
+        csvs = glob.glob(os.path.join(testdir, '*.csv'))
+        csv_timestamps = [
+            os.path.getmtime(filename) for filename in csvs
+        ]
+        modification_timestamps = timestamps1 + csv_timestamps
         last_modified = datetime.datetime.fromtimestamp(
             max(modification_timestamps))
 
@@ -105,8 +109,7 @@ class Command(BaseCommand):
         if os.path.isfile(index_file):
             # Make sure the content is up to date.
             self.test_case.info = open(index_file).read()
-        self.test_case.has_csv = bool(glob.glob(
-            os.path.join(testdir, '*.csv')))
+        self.test_case.has_csv = bool(csvs)
         self.test_case.save()
 
     def set_up_test_run(self, force):
