@@ -5,6 +5,8 @@ Changelog of threedi-verification
 0.3 (unreleased)
 ----------------
 
+- Add csv files to the timestamp check for new testruns (only for FLOW).
+
 - Big changes: add functionality for running different libraries, i.e.,
   at the moment, both subgrid and the new flow library.
 
