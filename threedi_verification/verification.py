@@ -985,7 +985,7 @@ def run_flow_simulation(model_dir, inp_report=None, verbose=False):
     buildout_dir = original_dir
 
     pyflow = os.path.join(buildout_dir, 'bin', 'pyflow')
-    cmd = '%s %s -m' % (pyflow, os.path.abspath(model_dir))
+    cmd = '%s %s -m -o debug' % (pyflow, os.path.abspath(model_dir))
     logger.debug("Running %s", cmd)
     exit_code, output = system(cmd)
     last_output = ''.join(output.split('\n')[-2:]).lower()
