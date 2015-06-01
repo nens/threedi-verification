@@ -17,4 +17,5 @@ then
     hg clone http://hg.lizard.net/testbank_flow
 fi
 cd testbank_flow;
+hg purge --all  # purge untracked + ignored files
 hg pull -u
