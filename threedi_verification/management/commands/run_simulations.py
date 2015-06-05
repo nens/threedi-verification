@@ -56,17 +56,6 @@ class Command(BaseCommand):
         if run_all:
             print("All simulations will be run.")
 
-        if options['only_subgrid'] or run_all:
-            print("Starting subgrid simulations.")
-            for test_case in TestCase.objects.filter(library=SUBGRID):
-                full_path = os.path.join(subgrid_testcases_dir, test_case.path)
-                if not os.path.exists(full_path):
-                    logger.error("Path %s doesn't exist anymore...", full_path)
-                    continue
-                if options['limit'] and (options['limit'] not in full_path):
-                    continue
-                call_command('run_subgrid_simulation', full_path,
-                             force=options['force'])
         if options['only_flow'] or run_all:
             print("Starting flow simulations.")
             for test_case in TestCase.objects.filter(library=FLOW):
@@ -77,4 +66,15 @@ class Command(BaseCommand):
                 if options['limit'] and (options['limit'] not in full_path):
                     continue
                 call_command('run_flow_simulation', full_path,
+                             force=options['force'])
+        if options['only_subgrid'] or run_all:
+            print("Starting subgrid simulations.")
+            for test_case in TestCase.objects.filter(library=SUBGRID):
+                full_path = os.path.join(subgrid_testcases_dir, test_case.path)
+                if not os.path.exists(full_path):
+                    logger.error("Path %s doesn't exist anymore...", full_path)
+                    continue
+                if options['limit'] and (options['limit'] not in full_path):
+                    continue
+                call_command('run_subgrid_simulation', full_path,
                              force=options['force'])
