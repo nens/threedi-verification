@@ -861,10 +861,8 @@ def make_time_plot(dataset, parameter, time_idx, location_idx,
     plt.plot(values[:, location_idx])
     plt.plot(time_idx, values[time_idx, location_idx], 'ro')
 
-    # plot a vertical dashed line from the found value to x axis
-    x = (time_idx, time_idx)
-    y = (0, values[time_idx, location_idx])
-    plt.plot(x, y, 'r--')
+    # plot a vertical dashed line
+    plt.axvline(x=time_idx, color='red', linestyle='--')
 
     # adjust axes
     plt.xlim(t_lower, t_upper)
