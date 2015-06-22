@@ -87,8 +87,11 @@ class Command(BaseCommand):
         csvs = glob.glob(os.path.join(testdir, '*.csv'))
         csv_timestamps = [
             os.path.getmtime(filename) for filename in csvs
-        ]
-        modification_timestamps = timestamps1 + csv_timestamps
+            ]
+        index_file = os.path.join(testdir, 'index.txt')
+        index_ts = [os.path.getmtime(index_file)] if os.path.isfile(
+            index_file) else []  # note: list with one value
+        modification_timestamps = timestamps1 + csv_timestamps + index_ts
         last_modified = datetime.datetime.fromtimestamp(
             max(modification_timestamps))
 
@@ -105,7 +108,6 @@ class Command(BaseCommand):
                 test_case=self.test_case, last_modified=last_modified)
 
         # Update TestCase.info and csv fields
-        index_file = os.path.join(testdir, 'index.txt')
         if os.path.isfile(index_file):
             # Make sure the content is up to date.
             self.test_case.info = open(index_file).read()
