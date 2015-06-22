@@ -39,6 +39,31 @@
   </table>
 
   <h1>Test results</h1>
+
+<!--
+  <ul>
+  {% for category in view.test_runs_by_category.keys %}
+      <li>
+        <a href="#{{ category }}">
+          {{ category }}
+        </a>
+      </li>
+  {% endfor %}
+  </ul>
+-->
+
+<nav id="nav">
+  <ul class="nav nav-pills">
+  {% for category in view.test_runs_by_category.keys %}
+      <li>
+        <a href="#{{ category }}" class="text-info">
+          <h5> {{ category }} </h5>
+        </a>
+      </li>
+  {% endfor %}
+  </ul>
+</nav>
+
   <table class="table">
     <thead>
       <tr>
@@ -53,40 +78,51 @@
     </thead>
 
     <tbody>
-      {% for test_case, test_runs in view.completed_test_runs.items %}
-        {% for test_run in test_runs %}
-          <tr {% if not forloop.first %}class="text-muted"{% endif %}>
-            {% if forloop.first %}
-              <td rowspan="{{ test_runs|length }}">
-                <a href="{{ test_case.get_absolute_url }}">
-                  {{ test_case.pretty_name }}
-                </a>
-              </td>
-            {% endif %}
-            <td>
-              {{ test_run.duration|floatformat }}
-            </td>
-            <td>
-              {{ test_run.run_started }}
-            </td>
-            <td>
+      {% for category, test_case_dict in view.test_runs_by_category.items %}
 
-              <a href="{% url 'threedi_verification.test_run' pk=test_run.pk %}">
-                <div class="progress">
-                  <div class="progress-bar progress-bar-success"
-                       style="width: {{ test_run.progress_bar_percentage_right }}%;">
-                  </div>
-                  <div class="progress-bar progress-bar-danger"
-                       style="width: {{ test_run.progress_bar_percentage_wrong }}%;">
-                  </div>
-                </div>
-              </a>
-
-            </td>
+          <tr>
+             <td class="text-info"> <h5> {{ category }} </h5> <a name="{{ category }}"></a>
+             </td>
+            <td/>
+            <td/>
+            <td/>
           </tr>
-       {% endfor %}
-     {% endfor %}
+          {% for test_case, test_runs in test_case_dict.items %}
 
+            {% for test_run in test_runs %}
+              <tr {% if not forloop.first %}class="text-muted"{% endif %}>
+                {% if forloop.first %}
+                  <td rowspan="{{ test_runs|length }}">
+                    <a href="{{ test_case.get_absolute_url }}">
+                      {{ test_case.pretty_name }}
+                    </a>
+                  </td>
+                {% endif %}
+                <td>
+                  {{ test_run.duration|floatformat }}
+                </td>
+                <td>
+                  {{ test_run.run_started }}
+                </td>
+                <td>
+
+                  <a href="{% url 'threedi_verification.test_run' pk=test_run.pk %}">
+                    <div class="progress">
+                      <div class="progress-bar progress-bar-success"
+                           style="width: {{ test_run.progress_bar_percentage_right }}%;">
+                      </div>
+                      <div class="progress-bar progress-bar-danger"
+                           style="width: {{ test_run.progress_bar_percentage_wrong }}%;">
+                      </div>
+                    </div>
+                  </a>
+
+                </td>
+
+              </tr>
+            {% endfor %}
+          {% endfor %}
+      {% endfor %}
     </tbody>
   </table>
 

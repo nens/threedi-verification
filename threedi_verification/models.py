@@ -79,6 +79,17 @@ class TestCase(models.Model):
     def library_name(self):
         return dict(LIBRARIES).get(self.library)
 
+    @cached_property
+    def category(self):
+        """Custom parsing of the category from index.txt"""
+        key = "category:"
+        if key not in self.info:
+            return "Unknown category"
+        else:
+            f = filter(lambda s: s.startswith(key), self.info.split('\n'))[0]
+            t = f[len(key):].strip()
+            return t
+
 
 class TestCaseVersion(models.Model):
 
