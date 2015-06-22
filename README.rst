@@ -83,7 +83,7 @@ Some notes for ``Flow`` test cases: Information about the test case can be put
 in ``index.txt`` of the test case root directory. The site will attempt to parse
 the name and category of the test case. The name is the first line of the file,
 and the category is parsed by looking at the line with the string
-``category: `` .
+``category:``.
 
 
 3Di subgrid library location
