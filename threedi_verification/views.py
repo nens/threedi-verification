@@ -95,15 +95,48 @@ class LibraryVersionView(BaseView):
         return [test_run for test_run in self.all_test_runs
                 if test_run.has_crashed]
 
+    # TODO: remove this function, is obsolete/unused!
     @cached_property
     def completed_test_runs(self):
         test_runs = [test_run for test_run in self.all_test_runs
                      if (not test_run.has_crashed) and test_run.duration]
         per_test_case = OrderedDict()
         for test_case, group in itertools.groupby(
-                test_runs, lambda test_run: test_run.test_case_version.test_case):
+                test_runs,
+                lambda test_run: test_run.test_case_version.test_case):
             per_test_case[test_case] = list(group)
         return per_test_case
+
+    def get_completed_test_runs(self, test_runs):
+        per_test_case = OrderedDict()
+        for test_case, group in itertools.groupby(
+                test_runs,
+                lambda test_run: test_run.test_case_version.test_case):
+            per_test_case[test_case] = list(group)
+        return per_test_case
+
+    @cached_property
+    def _test_runs_by_category(self):
+        """Grouped by category"""
+        test_runs = [test_run for test_run in self.all_test_runs
+                     if (not test_run.has_crashed) and test_run.duration]
+        # IMPORTANT: test_runs needs to be SORTED for groupby to work
+        test_runs.sort(
+            key=lambda test_run: test_run.test_case_version.test_case.category)
+        #import pdb; pdb.set_trace()
+        per_category = {}
+        for category, group in itertools.groupby(
+                test_runs,
+                lambda testrun: testrun.test_case_version.test_case.category):
+            per_category[category] = list(group)
+        return per_category
+
+    @cached_property
+    def test_runs_by_category(self):
+        d = {}
+        for category, group in self._test_runs_by_category.items():
+            d[category] = self.get_completed_test_runs(group)
+        return d
 
 
 class TestCasesView(BaseView):

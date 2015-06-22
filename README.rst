@@ -69,11 +69,21 @@ an mdu file for the subgrid library::
 
 Or ``run_flow_simulation`` and pass in a model dir for the flow library::
 
-    $ bin/django run_flow_simulation testbank_urban/4_1D_OnePip/
+    $ bin/django run_flow_simulation testbank_flow/4_1D_OnePip/
 
 This generates some html files into the ``var/html/`` directory.
 The html output is also generated on jenkins:
 http://jenkins.3di.lizard.net/testresults/ .
+
+
+Test case files
+---------------
+
+Some notes for ``Flow`` test cases: Information about the test case can be put
+in ``index.txt`` of the test case root directory. The site will attempt to parse
+the name and category of the test case. The name is the first line of the file,
+and the category is parsed by looking at the line with the string
+``category: ``.
 
 
 3Di subgrid library location
