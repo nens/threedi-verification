@@ -83,7 +83,7 @@ class TestCase(models.Model):
     def category(self):
         """Custom parsing of the category from index.txt"""
         key = "category:"
-        if key not in self.info:
+        if self.info is None or key not in self.info:
             return "Unknown category"
         else:
             f = filter(lambda s: s.startswith(key), self.info.split('\n'))[0]
