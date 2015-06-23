@@ -800,7 +800,7 @@ def check_map_nflow(instruction, instruction_report, dataset,
 
 
 def plot_it(dataset, parameter_name, desired_time_index, location_index,
-            instruction_report, instruction_id=None, test_run_id=''):
+            instruction_report, instruction_id=None, test_run_id=None):
     """Helper function for calling the actual plotting function"""
     if not np.isscalar(location_index):  # type(location_index) == slice
         # TODO: implement if location index is a range of values
