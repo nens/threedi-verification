@@ -152,7 +152,7 @@ class InstructionReport(object):
 
 class MduReport(object):
 
-    def __init__(self, mdu_filepath):
+    def __init__(self, mdu_filepath, test_run_id=None):
         self.log = None
         self.successfully_loaded_log = None
         self.id = mdu_filepath
@@ -162,6 +162,9 @@ class MduReport(object):
         self.index_lines = []
         self.csv_contents = []
         self.model_parameters = []
+
+        # test_run_id is needed to uniquely save the plots
+        self.test_run_id = test_run_id
 
     def __cmp__(self, other):
         return cmp(self.id, other.id)
@@ -252,8 +255,8 @@ class MduReport(object):
 class InpReport(MduReport):
     """A version of the MduReport for the flow lib"""
 
-    def __init__(self, path):
-        super(InpReport, self).__init__(path)
+    def __init__(self, path, *args, **kwargs):
+        super(InpReport, self).__init__(path, *args, **kwargs)
         self.input_files = []
 
     def as_dict(self):
@@ -596,7 +599,8 @@ def check_his(instruction, instruction_report, dataset):
                     desired)
 
 
-def check_map(instruction, instruction_report, dataset, instruction_id=None):
+def check_map(instruction, instruction_report, dataset, instruction_id=None,
+              test_run_id=None):
     logger.debug("Checking regular map")
     # Admin stuff
     instruction_report.title = instruction['note']
@@ -699,11 +703,12 @@ def check_map(instruction, instruction_report, dataset, instruction_id=None):
                 parameter_name,
                 desired)
     plot_it(dataset, parameter_name, desired_time_index, location_index,
-            instruction_report, instruction_id=instruction_id)
+            instruction_report, instruction_id=instruction_id,
+            test_run_id=test_run_id)
 
 
 def check_map_nflow(instruction, instruction_report, dataset,
-                    instruction_id=None):
+                    instruction_id=None, test_run_id=None):
     """
     Check an instruction where the node is already given (nFlowElem, nFlowLink)
 
@@ -712,6 +717,7 @@ def check_map_nflow(instruction, instruction_report, dataset,
         instruction_report: one line of the report (generated from instruction)
         dataset: the netcdf dataset
         instruction_id: generated string of the instruction
+        test_run_id: is just being passed on for the plot generation
     """
     logger.debug("Checking nflow")
     # Admin stuff.
@@ -789,11 +795,12 @@ def check_map_nflow(instruction, instruction_report, dataset,
                 parameter_name,
                 desired)
     plot_it(dataset, parameter_name, desired_time_index, location_index,
-            instruction_report, instruction_id=instruction_id)
+            instruction_report, instruction_id=instruction_id,
+            test_run_id=test_run_id)
 
 
 def plot_it(dataset, parameter_name, desired_time_index, location_index,
-            instruction_report, instruction_id=None):
+            instruction_report, instruction_id=None, test_run_id=None):
     """Helper function for calling the actual plotting function"""
     if not np.isscalar(location_index):  # type(location_index) == slice
         # TODO: implement if location index is a range of values
@@ -811,8 +818,11 @@ def plot_it(dataset, parameter_name, desired_time_index, location_index,
         # dir structure
         cwd = os.getcwd()
         model_relpath = os.path.relpath(cwd, settings.BUILDOUT_DIR)
+
+        # NOTE: test_run_id is to identify the plots per test run
         img_path = os.path.join(
-            settings.MEDIA_ROOT, model_relpath, instruction_id + '.png')
+            settings.MEDIA_ROOT, model_relpath, str(test_run_id),
+            instruction_id + '.png')
         instruction_report.image_relpath = os.path.relpath(img_path,
                                                            settings.MEDIA_ROOT)
         make_time_plot(dataset, parameter_name, desired_time_index,
@@ -920,10 +930,12 @@ def check_csv(csv_filename, netcdf_path=None, mdu_report=None, is_his=False):
             else:
                 if ('nFlowLink' in instruction or 'nFlowElem' in instruction):
                     check_map_nflow(instruction, instruction_report, dataset,
-                                    instruction_id=instruction_id)
+                                    instruction_id=instruction_id,
+                                    test_run_id=mdu_report.test_run_id)
                 else:
                     check_map(instruction, instruction_report, dataset,
-                              instruction_id=instruction_id)
+                              instruction_id=instruction_id,
+                              test_run_id=mdu_report.test_run_id)
 
 
 def model_parameters(mdu_filepath):

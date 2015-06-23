@@ -141,7 +141,8 @@ class Command(BaseCommand):
             library_version=self.library_version)
 
     def run_simulation(self):
-        inp_report = verification.InpReport(self.full_path)
+        inp_report = verification.InpReport(self.full_path,
+                                            test_run_id=self.test_run.id)
         start_time = time.time()
         verification.run_flow_simulation(self.full_path, inp_report)
         self.test_run.duration = time.time() - start_time
