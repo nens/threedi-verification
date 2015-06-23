@@ -120,11 +120,9 @@ class LibraryVersionView(BaseView):
         """Grouped by category"""
         test_runs = [test_run for test_run in self.all_test_runs
                      if (not test_run.has_crashed) and test_run.duration]
-        #import pdb; pdb.set_trace()
         # IMPORTANT: test_runs needs to be SORTED for groupby to work
         test_runs.sort(
             key=lambda test_run: test_run.test_case_version.test_case.category)
-        #import pdb; pdb.set_trace()
         per_category = {}
         for category, group in itertools.groupby(
                 test_runs,
