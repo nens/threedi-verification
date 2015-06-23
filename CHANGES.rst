@@ -5,6 +5,9 @@ Changelog of threedi-verification
 0.3 (unreleased)
 ----------------
 
+- Fix bug with plots being overwritten. Now they are uniquely identified and
+  saved per test run using the test_run_id.
+
 - Also include timestamp of index.txt when checking FLOW test case version.
 
 - Add categories for test cases. Adjust vertical line in plots.
