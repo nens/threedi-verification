@@ -65,7 +65,8 @@ class Command(BaseCommand):
         for dir_path, dirs, files in os.walk(flow_testcases_dir):
             # if the dir_path has required dirs, assume it is a model dir
             has_required_dirs = FLOW_REQUIRED_DIRS.issubset(set(dirs))
-            if has_required_dirs:
+            ini_files = [f for f in files if f.endswith('.ini')]
+            if has_required_dirs and len(ini_files) == 1:
                 relative_path = os.path.relpath(dir_path, flow_testcases_dir)
                 if TestCase.objects.filter(path=relative_path).exists():
                     test_case = TestCase.objects.get(path=relative_path)

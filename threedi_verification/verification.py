@@ -995,7 +995,13 @@ def run_flow_simulation(model_dir, inp_report=None, verbose=False):
     buildout_dir = original_dir
 
     pyflow = os.path.join(buildout_dir, 'bin', 'pyflow')
-    cmd = '%s %s -m -o debug' % (pyflow, os.path.abspath(model_dir))
+    ini_files = glob.glob(os.path.join(os.path.abspath(model_dir), '*.ini'))
+    if len(ini_files) != 1:
+        logger.error("No or more than one ini file found. ini_files: %s",
+                     ini_files)
+        return
+    ini_file = ini_files[0]
+    cmd = '%s %s -m -o debug' % (pyflow, ini_file)
     logger.debug("Running %s", cmd)
     exit_code, output = system(cmd)
     last_output = ''.join(output.split('\n')[-2:]).lower()
