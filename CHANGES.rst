@@ -5,6 +5,8 @@ Changelog of threedi-verification
 0.3 (unreleased)
 ----------------
 
+- Add checking for ini files (for FLOW) due to changes in python-flow.
+
 - Fix bug with plots being overwritten. Now they are uniquely identified and
   saved per test run using the test_run_id.
 
