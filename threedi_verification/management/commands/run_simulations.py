@@ -56,6 +56,9 @@ class Command(BaseCommand):
         if run_all:
             print("All simulations will be run.")
 
+        original_dir = os.getcwd()
+        logger.info("Original starting dir: %s", original_dir)
+
         if options['only_flow'] or run_all:
             print("Starting flow simulations.")
             for test_case in TestCase.objects.filter(library=FLOW):
@@ -67,6 +70,10 @@ class Command(BaseCommand):
                     continue
                 call_command('run_flow_simulation', full_path,
                              force=options['force'])
+
+        logger.debug("Current dir after running flow simulations: %s", os.getcwd())
+        os.chdir(original_dir)
+
         if options['only_subgrid'] or run_all:
             print("Starting subgrid simulations.")
             for test_case in TestCase.objects.filter(library=SUBGRID):
