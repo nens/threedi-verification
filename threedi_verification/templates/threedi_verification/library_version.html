@@ -90,6 +90,10 @@
           {% for test_case, test_runs in test_case_dict.items %}
 
             {% for test_run in test_runs %}
+
+{# TEMP CONDITION %}
+{% if not test_run.num_wrong %}
+
               <tr {% if not forloop.first %}class="text-muted"{% endif %}>
                 {% if forloop.first %}
                   <td rowspan="{{ test_runs|length }}">
@@ -121,6 +125,9 @@
 
               </tr>
             {% endfor %}
+
+{% endif %}
+
           {% endfor %}
       {% endfor %}
     </tbody>
