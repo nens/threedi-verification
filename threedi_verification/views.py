@@ -62,7 +62,7 @@ class LibraryVersionsView(BaseView):
         return reverse('threedi_verification.home')
 
     def library_versions(self):
-        return LibraryVersion.objects.all()
+        return LibraryVersion.objects.all().prefetch_related('test_runs')
 
 
 class LibraryVersionView(BaseView):
