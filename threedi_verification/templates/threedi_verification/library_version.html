@@ -91,9 +91,6 @@
 
             {% for test_run in test_runs %}
 
-{# TEMP CONDITION #}
-{% if not test_run.num_wrong %}
-
               <tr {% if not forloop.first %}class="text-muted"{% endif %}>
                 {% if forloop.first %}
                   <td rowspan="{{ test_runs|length }}">
@@ -124,8 +121,6 @@
                 </td>
 
               </tr>
-
-{% endif %}
 
             {% endfor %}
           {% endfor %}
