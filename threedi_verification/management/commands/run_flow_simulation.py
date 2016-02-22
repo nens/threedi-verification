@@ -78,10 +78,9 @@ class Command(BaseCommand):
         self.test_case = TestCase.objects.get(path=relative_path)
 
         # Detects changes in models
-        model_subdir = os.path.join(testdir, 'model')
         timestamps1 = [
-            os.path.getmtime(os.path.join(model_subdir, filename))
-            for filename in os.listdir(model_subdir)]
+            os.path.getmtime(os.path.join(testdir, filename))
+            for filename in os.listdir(testdir)]
 
         csvs = glob.glob(os.path.join(testdir, '*.csv'))
         csv_timestamps = [

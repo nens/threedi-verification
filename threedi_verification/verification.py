@@ -955,7 +955,14 @@ def model_parameters(mdu_filepath):
 
 def input_files(model_dir):
     """Just return the contents of the input files"""
-    input_generated_dir = os.path.join(model_dir, 'input_generated')
+    ini_files = glob.glob(os.path.join(os.path.abspath(model_dir), '*.ini'))
+    if len(ini_files) != 1:
+        logger.error("No or more than one ini file found. ini_files: %s",
+                     ini_files)
+        return
+    ini_file = ini_files[0]
+    variant_path = os.path.join(model_dir, os.path.splitext(ini_file)[0])
+    input_generated_dir = os.path.join(variant_path, 'input_generated')
 
     # will capture 'input.  1' and 'input_grid_gen.  1'
     pattern = os.path.join(input_generated_dir, 'input*')
@@ -1001,6 +1008,8 @@ def run_flow_simulation(model_dir, inp_report=None, verbose=False):
                      ini_files)
         return
     ini_file = ini_files[0]
+    ini_name = os.path.splitext(ini_file)[0]
+    variant_dir = os.path.join(model_dir, ini_name)
     cmd = '%s %s -m -o debug' % (pyflow, ini_file)
     logger.debug("Running %s", cmd)
     exit_code, output = system(cmd)
@@ -1025,17 +1034,17 @@ def run_flow_simulation(model_dir, inp_report=None, verbose=False):
         csv_filenames = [f for f in os.listdir('.') if f.endswith('.csv')]
         for csv_filename in csv_filenames:
             logger.info("Reading instructions from %s", csv_filename)
-            netcdf_path = 'results/subgrid_map.nc'
+            netcdf_path = os.path.join(ini_name, 'results/subgrid_map.nc')
             check_csv(csv_filename, netcdf_path, mdu_report=inp_report)
 
     # Cleanup results
-    for f in os.listdir('results'):
-        item = os.path.join('results', f)
+    for f in os.listdir(os.path.join(variant_dir,'results')):
+        item = os.path.join(os.path.join(variant_dir,'results'), f)
         if os.path.isfile(item):
             os.remove(item)
     # Also delete makegrid files because of interference with 'hg update'
-    for f in os.listdir('preprocessed'):
-        item = os.path.join('preprocessed', f)
+    for f in os.listdir(os.path.join(variant_dir, 'preprocessed')):
+        item = os.path.join(os.path.join(variant_dir, 'preprocessed'), f)
         if os.path.isfile(item):
             os.remove(item)
 
