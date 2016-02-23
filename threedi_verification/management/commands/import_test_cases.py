@@ -15,7 +15,7 @@ subgrid_testcases_dir = settings.TESTCASES_ROOT
 flow_testcases_dir = settings.URBAN_TESTCASES_ROOT
 
 # the definition of a flow model, i.e., it must contain these dirs
-FLOW_REQUIRED_DIRS = {'input_generated', 'model'}
+FLOW_REQUIRED_DIRS = {'input_generated'}
 
 
 class Command(BaseCommand):
@@ -64,9 +64,9 @@ class Command(BaseCommand):
         found = []
         for dir_path, dirs, files in os.walk(flow_testcases_dir):
             # if the dir_path has required dirs, assume it is a model dir
-            has_required_dirs = FLOW_REQUIRED_DIRS.issubset(set(dirs))
+            #has_required_dirs = FLOW_REQUIRED_DIRS.issubset(set(dirs))
             ini_files = [f for f in files if f.endswith('.ini')]
-            if has_required_dirs and len(ini_files) == 1:
+            if len(ini_files) == 1: # has_required_dirs and
                 relative_path = os.path.relpath(dir_path, flow_testcases_dir)
                 if TestCase.objects.filter(path=relative_path).exists():
                     test_case = TestCase.objects.get(path=relative_path)

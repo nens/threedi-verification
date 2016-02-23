@@ -78,9 +78,10 @@ class Command(BaseCommand):
         self.test_case = TestCase.objects.get(path=relative_path)
 
         # Detects changes in models
-        timestamps1 = [
-            os.path.getmtime(os.path.join(testdir, filename))
-            for filename in os.listdir(testdir)]
+        #THis is not necessary anymore for new folderstructure
+        #timestamps1 = [
+        #    os.path.getmtime(os.path.join(testdir, filename))
+        #    for filename in os.listdir(testdir)]
 
         csvs = glob.glob(os.path.join(testdir, '*.csv'))
         csv_timestamps = [
@@ -94,8 +95,8 @@ class Command(BaseCommand):
         index_ts = [os.path.getmtime(index_file)] if os.path.isfile(
             index_file) else []  # note: list with one value
 
-        modification_timestamps = (timestamps1 + csv_timestamps + index_ts +
-                                   ini_timestamps)
+        modification_timestamps = (csv_timestamps + index_ts +
+                                   ini_timestamps)  #timestamps1 +
         last_modified = datetime.datetime.fromtimestamp(
             max(modification_timestamps))
 
