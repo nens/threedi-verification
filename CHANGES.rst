@@ -21,6 +21,8 @@ Changelog of threedi-verification
 
 - Point update_testbank.sh script to production model databank (hg.lizard.net).
 
+- Add update_testbank_valgrind.sh to not let it checkout testbank_flow. This is not necessary.
+
 
 0.2 (2014-06-25)
 ----------------
