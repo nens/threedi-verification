@@ -1,4 +1,5 @@
 from setuptools import setup
+import monkeypatch_setuptools
 
 version = '0.3.dev0'
 
